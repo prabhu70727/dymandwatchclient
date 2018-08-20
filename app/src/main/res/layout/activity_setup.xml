@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.wear.widget.BoxInsetLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_grey"
+    android:padding="@dimen/box_inset_layout_padding"
+    tools:context="com.example.prabhu.dymand.SetupActivity"
+    tools:deviceIds="wear">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="@dimen/inner_frame_layout_padding"
+        app:boxedEdges="all">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+
+                <Button
+                    android:id="@+id/button5"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="startServiceOnClickedCentral"
+                    android:text="@string/startServiceCentral" />
+
+                <Button
+                    android:id="@+id/button6"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="startServiceOnClickedPeripheral"
+                    android:text="@string/startServicePeripheral" />
+
+                <Button
+                    android:id="@+id/button7"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="killServiceOnClicked"
+                    android:text="@string/kill_service" />
+            </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
+</android.support.wear.widget.BoxInsetLayout>
+
