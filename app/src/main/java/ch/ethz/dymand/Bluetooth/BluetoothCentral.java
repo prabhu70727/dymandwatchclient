@@ -20,7 +20,6 @@ import android.util.Log;
 import android.util.Pair;
 
 import ch.ethz.dymand.Config;
-import ch.ethz.dymand.VoiceActivityDetection.VADMain;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -133,7 +132,7 @@ public class BluetoothCentral {
 
         if(mConnected){ //connected
             if(!mCentralMessageSent){ // connected but message not sent.
-                if(VADMain.isVoice()) mCentralMessageSent = sendMessage(timeStamp);
+                mCentralMessageSent = sendMessage(timeStamp);
             }
             else if(mPeriReadMessage) { // connected and message sent and message read.
                 mCentralMessageSent = false; // may not be required, TODO check

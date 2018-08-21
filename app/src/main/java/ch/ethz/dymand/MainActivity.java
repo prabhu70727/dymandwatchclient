@@ -24,8 +24,10 @@ import android.widget.Toast;
 
 import java.util.List;
 
+import ch.ethz.dymand.VoiceActivityDetection.VAD;
 
-public class MainActivity extends WearableActivity {
+
+public class MainActivity extends WearableActivity implements VAD.DataCollectionListener {
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_FINE_LOCATION = 2;
     private static String LOG_TAG="Logs: MainActivity";
@@ -36,7 +38,7 @@ public class MainActivity extends WearableActivity {
     Button mButton;
     private BluetoothAdapter mBluetoothAdapter; // to check the capabilities of BLE
     private BluetoothManager mbluetoothManager;
-
+    private VAD voiceDetector;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -99,6 +101,10 @@ public class MainActivity extends WearableActivity {
             Log.i(LOG_TAG, sensor.getStringType()+" "+sensor.getName());
         }*/
 
+        //VAD example
+        voiceDetector = new VAD(MainActivity.this);
+        voiceDetector.recordSound();
+
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -116,17 +122,11 @@ public class MainActivity extends WearableActivity {
         startActivity(intent);
     }
 
-    /* Use it if necessary.
-    private boolean blueToothHasPermissions() {
-        if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
-            requestBluetoothEnable();
-            return false;
-        } else if (!hasLocationPermissions()) {
-            requestLocationPermission();
-            return false;
-        }
-        return true;
-    }*/
+    public void startBluetoothSetupActivityOnClicked(View view) {
+        Log.i(LOG_TAG, "Bluetooth Setup Intent starting...");
+        Intent intent = new Intent(this, BlutoothSetupActivity.class);
+        startActivity(intent);
+    }
 
     private void requestBluetoothEnable() {
         Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -134,12 +134,16 @@ public class MainActivity extends WearableActivity {
         Log.i(LOG_TAG, "Requested user enables Bluetooth.");
     }
 
-    /*
-    private boolean hasLocationPermissions() {
-        return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-    }
-    private void requestLocationPermission() {
-        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_FINE_LOCATION);
-    }*/
 
+    //TODO Implement these function
+    @Override
+    public void speech() {
+        Log.d("Data Collection", "Collecting sensor data...");
+    }
+
+    //TODO Implement these function
+    @Override
+    public void noSpeech(){
+        Log.d("Data Collection", "No data collection...");
+    }
 }

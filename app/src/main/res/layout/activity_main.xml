@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/dark_grey"
     android:padding="@dimen/box_inset_layout_padding"
-    tools:context="com.example.prabhu.dymand.MainActivity"
+    tools:context="ch.ethz.dymand.MainActivity"
     tools:deviceIds="wear">
 
     <FrameLayout
@@ -20,7 +20,7 @@
             android:id="@+id/button2"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:onClick="startSetupActivityOnClicked"
+            android:onClick="startBluetoothSetupActivityOnClicked"
             android:text="@string/start_setup" />
     </FrameLayout>
 </android.support.wear.widget.BoxInsetLayout>

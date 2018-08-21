@@ -5,7 +5,7 @@ import java.util.Date;
 
 // TODO: the current one is just a demo
 public class WatchMobileInterface {
-    private static boolean doIntervene = false;
+    private static boolean doIntervene = true;
     private static long end_time;
 
     public static long curTime(){

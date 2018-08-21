@@ -148,6 +148,7 @@ public class FGService extends Service implements DataClient.OnDataChangedListen
                     // Also the devices can connect only if they are found and they can be only found if
                     // the distance is less than the threshold.
                     if(mBluetoothCentral.sendSignalToPeriToRecord(timeStamp)){
+
                         disableBluetoothPursuit();
                         record(mBluetoothCentral.getTimeStamp());
                         sendIntention();
@@ -160,6 +161,7 @@ public class FGService extends Service implements DataClient.OnDataChangedListen
                 }
                 else{
                     if(mBluetoothPeripheral.canStartRecording()) {
+
                         String timeStamp = mBluetoothPeripheral.getTimeStamp();
                         disableBluetoothPursuit();
                         record(timeStamp);

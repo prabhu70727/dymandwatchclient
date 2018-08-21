@@ -47,6 +47,15 @@
         <activity
             android:name=".SetupActivity"
             android:label="@string/title_activity_setup"></activity>
+
+        <activity
+            android:name=".BlutoothSetupActivity"
+            android:label="@string/title_activity_bluetooth_setup" />
+
+        <activity
+            android:name=".SetupUUID"
+            android:label="@string/title_activity_setup_uuid"
+            android:theme="@style/Theme.AppCompat" />
     </application>
 
 </manifest>

@@ -15,4 +15,10 @@
     <string name="startServicePeripheral">Peripheral</string>
     <string name="start_setup">Start Setup</string>
     <string name="kill_service">Kill Service</string>
+    <string name="title_activity_bluetooth_setup">Bluetooth Setup</string>
+    <string name="black_string">BLACK</string>
+    <string name="white_string">WHITE</string>
+    <string name="color_question">"What is your device's color?"</string>
+    <string name="title_activity_setup_uuid">SetupUUID</string>
+    <string name="title_activity_start_study">StartStudy</string>
 </resources>
