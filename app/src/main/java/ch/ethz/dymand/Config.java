@@ -7,6 +7,7 @@ import android.hardware.SensorManager;
 
 import ch.ethz.dymand.Sensors.SensorRecorder;
 
+import java.io.File;
 import java.util.UUID;
 
 public class Config {
@@ -24,17 +25,19 @@ public class Config {
     public static final int SCAN_MODE_BLUETOOTH = ScanSettings.SCAN_MODE_LOW_POWER;
     public static final int RECORDER_AUDIO_CHANNELS = 2;
     public static final int SENSOR_DELAY = SensorManager.SENSOR_DELAY_FASTEST;
+
     //public static String SERVICE_STRING = "7D2EA28A-F7BD-485A-BD9D-92AD6ECFE93E";
     //public static String SERVICE_STRING = "e81f4267-5403-4646-8429-3d6a2ef85123";
     //public static String SERVICE_STRING = "7D2EA28A-F7BD-485A-BD9D-92AD6ECFE123";
-    public static String SERVICE_STRING = "e81f4267-5403-4646-8429-3d6a2ef85cc2";
+    public static String SERVICE_STRING = "e81f4267-5403-4646-8429-3d6a2ef85cc5";
     public static StringBuilder SERVICE_STRING_BUFF = new StringBuilder("e81f4267-5403-4646-8429-3d6a2ef85cc2");
     public static UUID SERVICE_UUID = UUID.fromString(SERVICE_STRING);
+
     public static StringBuilder CHARACTERISTIC_STRING_BUFF = new StringBuilder("922e1110-dd53-41b4-bae1-05f795ccdcc");
-    //public static String CHARACTERISTIC_STRING = "7D2EBAAD-F7BD-485A-BD9D-92AD6ECFE93E";
+    public static String CHARACTERISTIC_STRING = "7D2EBAAD-F7BD-485A-BD9D-92AD6ECFE93E";
     //public static String CHARACTERISTIC_STRING = "922e1110-dd53-41b4-bae1-05f795cc123";
     //public static String CHARACTERISTIC_STRING = "7D2EBAAD-F7BD-485A-BD9D-92AD6ECFE9123";
-    public static String CHARACTERISTIC_STRING = "922e1110-dd53-41b4-bae1-05f795ccdcc";
+    //public static String CHARACTERISTIC_STRING = "922e1110-dd53-41b4-bae1-05f795ccdcc";
     public static UUID CHARACTERISTIC_UUID = UUID.fromString(CHARACTERISTIC_STRING);
 
     public static String audioFileTag = "watchRecordAudio";
@@ -43,7 +46,7 @@ public class Config {
 
     public static boolean isCentral = true;
     public static final int SYNC_BUFFER = 5 * (MINUTE/60); //To sync between central and peripheral
-    public static final int threshold = 100;
+    public static final int threshold = -100;
 
     public static int[] sensorList = new int[]{
             Sensor.TYPE_HEART_RATE,
@@ -55,6 +58,9 @@ public class Config {
 
     public static final int INTENT_EXPIRY = 5 * (MINUTE); // Time for the intent to expiry
 
+    //Bluetooth couple
+    public static boolean shouldConnect = false;
+    public static File bleSSFile = new File("Bluetooth");
 }
 
 /* The Sensors in Polar M600 are
