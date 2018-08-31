@@ -55,6 +55,19 @@ public class Config {
 
     public static final int INTENT_EXPIRY = 5 * (MINUTE); // Time for the intent to expiry
 
+
+    //Timer configuration
+    public static int lastRecordedTime = 0;
+    public static boolean hasStartedRecording = false;
+    public static boolean shouldConnect = true;
+    public static int morningStartHourWeekday = 8;
+    public static int morningEndHourWeekday = 10;
+    public static int eveningStartHourWeekday = 18;
+    public static int eveningEndHourWeekday = 22;
+    public static int startHourWeekend = 9;
+    public static int endHourWeekend = 22;
+
+
 }
 
 /* The Sensors in Polar M600 are

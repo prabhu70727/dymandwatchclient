@@ -13,6 +13,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -27,7 +28,7 @@ import java.util.List;
 import ch.ethz.dymand.VoiceActivityDetection.VAD;
 
 
-public class MainActivity extends WearableActivity implements VAD.DataCollectionListener {
+public class MainActivity extends WearableActivity implements VAD.DataCollectionListener, Callbacks.MessageCallback, Callbacks.DataCollectionCallback, Callbacks.BleCallback {
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_FINE_LOCATION = 2;
     private static String LOG_TAG="Logs: MainActivity";
@@ -105,6 +106,9 @@ public class MainActivity extends WearableActivity implements VAD.DataCollection
         voiceDetector = new VAD(MainActivity.this);
         voiceDetector.recordSound();
 
+        //Scheduler test
+        Scheduler s = Scheduler.getInstance(this,this,this,this);
+
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -145,5 +149,43 @@ public class MainActivity extends WearableActivity implements VAD.DataCollection
     @Override
     public void noSpeech(){
         Log.d("Data Collection", "No data collection...");
+    }
+
+    @Override
+    public void triggerMsg(final String  msg) {
+
+
+        new Thread(new Runnable() {
+            public void run() {
+                Looper.prepare();
+                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
+                Looper.loop();
+            }
+        }).start();
+    }
+
+    @Override
+    public void startBleCallback() {
+
+    }
+
+    @Override
+    public void reStartBleCallback() {
+
+    }
+
+    @Override
+    public void stopBleCallback() {
+
+    }
+
+    @Override
+    public void collectDataCallBack() {
+
+    }
+
+    @Override
+    public void triggerEndOfDayDiary() {
+
     }
 }
