@@ -19,6 +19,7 @@ import android.widget.Toast;
 import ch.ethz.dymand.Audio.BackgroundAudioRecorder;
 import ch.ethz.dymand.Bluetooth.BluetoothCentral;
 import ch.ethz.dymand.Bluetooth.BluetoothPeripheral;
+import ch.ethz.dymand.BluetoothCouple.BluetoothController;
 import ch.ethz.dymand.Sensors.SensorRecorder;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.wearable.DataClient;
@@ -33,6 +34,7 @@ import com.google.android.gms.wearable.Wearable;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import static ch.ethz.dymand.Config.CHANNEL_ID;
 
@@ -119,14 +121,22 @@ public class FGService extends Service implements DataClient.OnDataChangedListen
             public void run() {
                 try {
                     //startProcess();
-                    startDemo(); // Its demo
+                    // startDemo(); // Its demo
                     //doNothing();
+                    startBluetoothModularityTest();
                 } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         });
         t.start();
+    }
+
+    private void startBluetoothModularityTest() throws IOException {
+        BluetoothController bluetoothController = new BluetoothController(this);
+        bluetoothController.startBLE();
     }
 
     private void doNothing() throws FileNotFoundException  {

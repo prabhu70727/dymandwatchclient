@@ -4,6 +4,7 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 import android.view.View;
@@ -17,6 +18,7 @@ public class BlutoothSetupActivity extends WearableActivity {
     private static final String LOG_TAG = "Logs: SetupActivity";
     Intent mService = null;
     BluetoothCentral mbluetoothCentral;
+    private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +29,13 @@ public class BlutoothSetupActivity extends WearableActivity {
 
         mbluetoothCentral = new BluetoothCentral(this);
         mbluetoothCentral.scan();
+
+        mHandler = new Handler();
+        mHandler.postDelayed(new Runnable(){
+            public void run() {
+                mbluetoothCentral.stop();
+            }
+        },2000);
 
         setAmbientEnabled();
     }
