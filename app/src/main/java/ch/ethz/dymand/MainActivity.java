@@ -28,7 +28,7 @@ import java.util.List;
 import ch.ethz.dymand.VoiceActivityDetection.VAD;
 
 
-public class MainActivity extends WearableActivity implements VAD.DataCollectionListener, Callbacks.MessageCallback, Callbacks.DataCollectionCallback, Callbacks.BleCallback {
+public class MainActivity extends WearableActivity implements VAD.DataCollectionListener, Callbacks.DataCollectionCallback, Callbacks.BleCallback {
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_FINE_LOCATION = 2;
     private static String LOG_TAG="Logs: MainActivity";
@@ -102,13 +102,41 @@ public class MainActivity extends WearableActivity implements VAD.DataCollection
             Log.i(LOG_TAG, sensor.getStringType()+" "+sensor.getName());
         }*/
 
+        //TODO: remove
+        startService();
+
+        //TODO: remove
         //VAD example
         voiceDetector = new VAD(MainActivity.this);
         voiceDetector.recordSound();
+    }
 
-        //Scheduler test
-        Scheduler s = Scheduler.getInstance(this,this,this,this);
+    //TODO: Move to terminal activity in the set up process
+    private void startService(){
+        if(isMyServiceRunning(FGService.class)) {
+            Toast.makeText(this, "Service exists. Kill it before starting a new one...", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent mService = new Intent(this, FGService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(mService);
+        }
+        else{
 
+            startService(mService);
+        }
+
+        Toast.makeText(this, "Starting service: ", Toast.LENGTH_SHORT).show();
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -152,19 +180,6 @@ public class MainActivity extends WearableActivity implements VAD.DataCollection
     }
 
     @Override
-    public void triggerMsg(final String  msg) {
-
-
-        new Thread(new Runnable() {
-            public void run() {
-                Looper.prepare();
-                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
-                Looper.loop();
-            }
-        }).start();
-    }
-
-    @Override
     public void startBleCallback() {
 
     }
@@ -181,11 +196,6 @@ public class MainActivity extends WearableActivity implements VAD.DataCollection
 
     @Override
     public void collectDataCallBack() {
-
-    }
-
-    @Override
-    public void triggerEndOfDayDiary() {
 
     }
 }

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Vibrator;
 import android.util.Log;
 
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -51,32 +52,43 @@ public class Scheduler {
     private static DataCollectionCallback dataCollection;
     private static MessageCallback msg;
     private static long minTimeBtnRecordings = 20 * 60 * 1000; //minimum time between recordings is 20 mins
-    private static long DELAY_FOR_55_MINS = 55 * 60 * 1000; //5000; //
-    private static long DELAY_FOR_60_MINS = 60 * 60 * 1000; //10000; //
+//    private static long DELAY_FOR_55_MINS = 55 * 60 * 1000; //5000; //
+//    private static long DELAY_FOR_60_MINS = 60 * 60 * 1000; //10000; //
+    private static long DELAY_FOR_55_MINS = 2 * 60 * 1000; //5000; //
+    private static long DELAY_FOR_60_MINS = 3 * 60 * 1000; //10000; //
     private static Timer timer;
     private static Calendar endOf7daysDate;
 
     //Ensures it is a singleton class
-    public static Scheduler getInstance(Context contxt, BleCallback bleInput, MessageCallback msgInput, DataCollectionCallback dataCollectionInput) {
+    public static Scheduler getInstance(Context contxt) {
         if (instance == null) {
             instance = new Scheduler();
 
             context = contxt;
-            ble = bleInput;
-            msg = msgInput;
-            dataCollection = dataCollectionInput;
-            startHourlyTimer();
+            //startHourlyTimer();
         }
 
         return instance;
     }
 
 
+    public void subscribeBleCallback(BleCallback bleInput){
+        ble = bleInput;
+    }
+
+    public void subscribeMessageCallback(MessageCallback msgInput){
+        msg = msgInput;
+    }
+
+    public void subscribeDataCollectionCallback (DataCollectionCallback dataCollectionInput){
+        dataCollection = dataCollectionInput;
+    }
+
     /**
      * Start the timer that runs each hour
      * Set to start the next Monday at the morning start time
      */
-    private  static void startHourlyTimer(){
+    public void startHourlyTimer(){
         //Sets start time to next monday morning start time
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
         int today = rightNow.get(Calendar.DAY_OF_WEEK);
@@ -120,12 +132,15 @@ public class Scheduler {
                 v.vibrate(500); // Vibrate for 500 milliseconds
 
                 //TODO: Remove Trigger message to be displayed
-                msg.triggerMsg("Start of new hour");
+                if(msg != null){
+                    msg.triggerMsg("Start of new hour");
+                }
+
                 Log.d("Scheduler","New hour start task performed on " + new Date());
             }
         };
         timer = new Timer("Timer");
-        timer.scheduleAtFixedRate(repeatedTask, 5000, DELAY_FOR_60_MINS);
+        timer.schedule(repeatedTask, 5000, DELAY_FOR_60_MINS);
         //timer.scheduleAtFixedRate(repeatedTask, nextMondayDate.getTime(), DELAY_FOR_60_MINS);
     }
 
@@ -154,17 +169,23 @@ public class Scheduler {
                 break;
 
             case END:
-                ble.stopBleCallback();
+                if (ble != null) {
+                    ble.stopBleCallback();
+                }
                 break;
 
             case END_OF_DAY:
-                ble.stopBleCallback();
-                dataCollection.triggerEndOfDayDiary();
+                if (ble != null) {
+                    ble.stopBleCallback();
+                }
+
                 break;
 
             case END_OF_7_DAYS:
                 //End timer
-                ble.stopBleCallback();
+                if (ble != null) {
+                    ble.stopBleCallback();
+                }
                 timer.cancel();
 
             default:
@@ -181,7 +202,11 @@ public class Scheduler {
         TimerTask task = new TimerTask() {
             public void run() {
 
-                collectData();
+                try {
+                    collectData();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
 
                 //TODO: Remove vibrator test in final version
                 Vibrator v = (Vibrator)  context.getSystemService(VIBRATOR_SERVICE);
@@ -217,7 +242,11 @@ public class Scheduler {
             return 0;
         }else{
             shouldConnect = false;
-            ble.reStartBleCallback();
+
+            if (ble != null){
+                ble.reStartBleCallback();
+            }
+
             return diff;
         }
     }
@@ -230,7 +259,9 @@ public class Scheduler {
 
         TimerTask task = new TimerTask() {
             public void run() {
-                ble.startBleCallback();
+                if(ble != null) {
+                    ble.startBleCallback();
+                }
 
                 Log.d("Scheduler", "Task performed on: " + new Date() + "n" +
                         "Thread's name: " + Thread.currentThread().getName());
@@ -302,9 +333,11 @@ public class Scheduler {
     /**
      *  Collects data if data collection in this hour hasn't started
      */
-    private static void collectData(){
+    private static void collectData() throws FileNotFoundException {
         if(!hasStartedRecording){
-            dataCollection.collectDataCallBack();
+            if (dataCollection != null){
+                dataCollection.collectDataCallBack();
+            }
         }
     }
 

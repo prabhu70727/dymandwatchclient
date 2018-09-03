@@ -1,11 +1,11 @@
 package ch.ethz.dymand;
 
+import java.io.FileNotFoundException;
+
 public interface Callbacks {
 
     interface DataCollectionCallback{
-         void collectDataCallBack();
-
-         void triggerEndOfDayDiary();
+         void collectDataCallBack() throws FileNotFoundException;
     }
 
     interface MessageCallback{
@@ -18,5 +18,9 @@ public interface Callbacks {
         void stopBleCallback();
 
         void reStartBleCallback();
+    }
+
+    interface WatchPhoneCommCallback{
+        void signalPhone();
     }
 }
