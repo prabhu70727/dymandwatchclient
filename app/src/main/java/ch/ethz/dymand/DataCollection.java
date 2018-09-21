@@ -67,6 +67,8 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         recordDir.mkdirs();
         String dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath()+"/"+tag+timeStamp+"/";
 
+        mAudioRecorder = new BackgroundAudioRecorder(context);
+        mSensorRecorder = new SensorRecorder(context);
         mAudioRecorder.startRecording(dirPath); // non blocking return.
         mSensorRecorder.startRecording(dirPath); // non blocking return.
 

@@ -44,6 +44,14 @@
             android:enabled="true"
             android:exported="false" />
 
+
+        <receiver android:name=".MainActivity$MyWakefulReceiver" >
+        </receiver>
+
+        <service android:name=".MainActivity$MyIntentService" >
+        </service>
+
+
         <activity
             android:name=".SetupActivity"
             android:label="@string/title_activity_setup"></activity>
