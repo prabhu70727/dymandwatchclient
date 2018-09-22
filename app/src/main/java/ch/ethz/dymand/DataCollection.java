@@ -1,6 +1,8 @@
 package ch.ethz.dymand;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -15,6 +17,8 @@ import ch.ethz.dymand.Audio.BackgroundAudioRecorder;
 import ch.ethz.dymand.Sensors.SensorRecorder;
 
 import static android.content.Context.VIBRATOR_SERVICE;
+import static ch.ethz.dymand.Config.DEBUG_MODE;
+import static ch.ethz.dymand.Config.hasSelfReportBeenStarted;
 import static ch.ethz.dymand.Config.hasStartedRecording;
 import static ch.ethz.dymand.Config.isCentral;
 import static ch.ethz.dymand.Config.isSelfReportCompleted;
@@ -31,7 +35,9 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
     private  static DataCollection instance = null;
     private static MessageCallback msg;
     private static long DELAY_FOR_5_MINS = 5 * 60 * 1000;
+    //private static long DELAY_FOR_5_MINS = 5 * 1000;
     private static long DELAY_FOR_2_MINS = 2 * 60 * 1000;
+    private static long DELAY_FOR_3_MINS = 3 * 60 * 1000;
     private static final String LOG_TAG = "Data Collection";
     private WatchPhoneCommCallback commCallback;
 
@@ -41,7 +47,6 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         if (instance == null) {
             instance = new DataCollection();
             context = contxt;
-
         }
         return instance;
     }
@@ -73,7 +78,11 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         mSensorRecorder.startRecording(dirPath); // non blocking return.
 
         //Perform task after 5 minutes recording
-        TimerTask task = new TimerTask()  {
+        //Create timer using handler and runnable
+        final Handler timerHandler = new Handler();
+
+        Runnable timerRunnable = new Runnable() {
+            @Override
             public void run() {
                 try {
                     stopRecording();
@@ -85,7 +94,9 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                 alertUser();
 
                 //Send User intent to phone
-                commCallback.signalPhone();
+                if (commCallback != null) {
+                    commCallback.signalPhone();
+                }
 
                 //Start 2 minute timer to check the survey has been completed
                 startFirst2minTimer();
@@ -93,8 +104,13 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         };
 
         //Start timer to stop recording after 5 mins
-        Timer timer = new Timer("Timer");
-        timer.schedule(task, DELAY_FOR_5_MINS);
+        timerHandler.postDelayed(timerRunnable,DELAY_FOR_5_MINS);
+
+        if (DEBUG_MODE == true){
+            msg.triggerMsg("Recording started");
+            Vibrator v = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
+            v.vibrate(500); // Vibrate for 500 milliseconds
+        }
     }
 
     /**
@@ -106,27 +122,34 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         Vibrator v = (Vibrator)  context.getSystemService(VIBRATOR_SERVICE);
         v.vibrate(1000); // Vibrate for 500 milliseconds
 
-        //TODO: Remove trigger message to be displayed
-        msg.triggerMsg("Recording for 5 mins done");
-        Log.d("Scheduler", "Recording for 5 mins done: " + new Date() + "n" +
-                "Thread's name: " + Thread.currentThread().getName());
+        if (DEBUG_MODE == true) {
+            //TODO: Remove trigger message to be displayed
+            msg.triggerMsg("Recording for 5 mins done");
+            Log.d("Scheduler", "Recording for 5 mins done: " + new Date() + "n" +
+                    "Thread's name: " + Thread.currentThread().getName());
 
+        }
 
         //TODO: Trigger image indicating that self report should be filled
     }
 
     /**
-     * Starts 2 minutes timer to check if survey has been filled
+     * Starts 2 minutes timer to check if filling of survey has started
      */
     private void startFirst2minTimer(){
 
         //Performs task after 2 minutes
-        TimerTask task = new TimerTask() {
+
+        //Create timer using handler and runnable
+        final Handler timerHandler = new Handler();
+
+        Runnable timerRunnable = new Runnable() {
+            @Override
             public void run() {
 
                 //Check if self report has been completed
                 //TODO: Add code that updates isSelfReportCompleted
-                if (!isSelfReportCompleted){
+                if (!hasSelfReportBeenStarted){
 
                     //Alerts user
                     alertUser();
@@ -138,20 +161,60 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         };
 
         //Starts 2 minute timer
-        Timer timer = new Timer("Timer");
-        timer.schedule(task, DELAY_FOR_2_MINS);
+        timerHandler.postDelayed(timerRunnable, DELAY_FOR_2_MINS);
     }
 
 
     /**
-     *  Starts second 2 minutes timer to check if survey has been filled
+     *  Starts second 2 minutes timer to check if filling of survey has started
      */
     private void startSecond2minTimer(){
+        //Create timer using handler and runnable
+        final Handler timerHandler = new Handler();
+
+        Runnable timerRunnable = new Runnable() {
+            @Override
+            public void run() {
+
+                //Check again if filling of self report has been started.
+                if (!hasSelfReportBeenStarted){
+
+                    //TODO: Discard recording if not started
+
+                    //Reset values
+                    shouldConnect = true;
+                    lastRecordedTime = prevLastRecordedTime; //reset last recorded time
+                    hasStartedRecording = false;
+                }else{
+                    //Check if self report has been completed
+                    if (!isSelfReportCompleted){
+                        if (DEBUG_MODE == true) {
+                            //TODO: Remove trigger message to be displayed
+                            msg.triggerMsg("3 mins alert");
+                            Log.d("Scheduler", "Recording for 5 mins done: " + new Date() + "n" +
+                                    "Thread's name: " + Thread.currentThread().getName());
+
+                        }
+                        start3minTimer();
+                    }
+                }
+            }
+        };
+
+        //Starts 2 minute timer
+        timerHandler.postDelayed(timerRunnable, DELAY_FOR_2_MINS);
+    }
+
+
+    /**
+     *  Starts  3 minutes timer to check if survey has been submitted
+     */
+    private void start3minTimer(){
         TimerTask task = new TimerTask() {
             public void run() {
 
                 //Check again if self report has been completed.
-                if (!isSelfReportCompleted){
+                if (!isSelfReportCompleted) {
 
                     //TODO: Discard recording if not completed
 
@@ -163,10 +226,11 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
             }
         };
 
-        //Starts 2 minute timer
+        //Starts 3 minute timer
         Timer timer = new Timer("Timer");
-        timer.schedule(task, DELAY_FOR_2_MINS);
+        timer.schedule(task, DELAY_FOR_3_MINS);
     }
+
 
     /**
      * Stops recording
@@ -180,10 +244,18 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         hasStartedRecording = false;
         prevLastRecordedTime = lastRecordedTime;
         lastRecordedTime = System.currentTimeMillis();
+
+        if (DEBUG_MODE == true){
+            msg.triggerMsg("Recording stopped");
+            Vibrator v = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
+            v.vibrate(500); // Vibrate for 500 milliseconds
+        }
     }
 
     @Override
     public void collectDataCallBack() throws FileNotFoundException {
+        //Looper.prepare();
         startRecording(""+ System.currentTimeMillis());
+        //Looper.loop();
     }
 }

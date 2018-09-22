@@ -11,6 +11,7 @@ import java.io.File;
 import java.util.UUID;
 
 public class Config {
+    public static boolean DEBUG_MODE = true;
     public static final int NOTIFICATION_ID = 71193;
     public static final String CHANNEL_ID = "DynamdNotificationServiceChannel";
 
@@ -68,7 +69,8 @@ public class Config {
     public static int eveningEndHourWeekday = 22;
     public static int startHourWeekend = 9;
     public static int endHourWeekend = 22;
-    public static boolean isSelfReportCompleted;
+    public static boolean isSelfReportCompleted = false;
+    public static boolean hasSelfReportBeenStarted = false;
 
 
     //Bluetooth couple

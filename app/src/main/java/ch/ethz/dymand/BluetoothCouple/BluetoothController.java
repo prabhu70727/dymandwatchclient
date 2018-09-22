@@ -2,21 +2,26 @@ package ch.ethz.dymand.BluetoothCouple;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.os.Vibrator;
 import android.util.Log;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import ch.ethz.dymand.Callbacks;
+import ch.ethz.dymand.Callbacks.MessageCallback;
+import ch.ethz.dymand.Callbacks.BleCallback;
 import ch.ethz.dymand.Config;
-import ch.ethz.dymand.MainActivity;
+import ch.ethz.dymand.DataCollection;
 import ch.ethz.dymand.VoiceActivityDetection.VAD;
+
+import static android.content.Context.VIBRATOR_SERVICE;
+import static ch.ethz.dymand.Config.DEBUG_MODE;
 
 
 public class BluetoothController implements
         BluetoothCentralConnect.CentralConnectInterface,
         BluetoothCentralScan.CentralScanInterface,
-        BluetoothPeripheral.PeripheralInterface,
-        Callbacks.BleCallback, VAD.DataCollectionListener {
+        BluetoothPeripheral.PeripheralInterface,BleCallback, VAD.DataCollectionListener {
 
     public static BluetoothController bluetoothController = null;
     BluetoothCentralScan mBluetoothCentralScan;
@@ -26,19 +31,34 @@ public class BluetoothController implements
 
     private Context mContext;
     private VAD voiceDetector;
+    private static DataCollection dataCollector;
+    private static MessageCallback msg;
+    private static Vibrator v;
 
-    public BluetoothController getInstance(Context context) {
+    public static BluetoothController getInstance(Context context) {
         if(bluetoothController!=null) return bluetoothController;
         else {
+            dataCollector = DataCollection.getInstance(context);
             bluetoothController = new BluetoothController();
             bluetoothController.mContext = context;
+            v = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
             return bluetoothController;
         }
+    }
+
+    public void subscribeMessageCallback(MessageCallback msgInput){
+        msg = msgInput;
     }
 
     private static final String LOG_TAG = "Logs: BluetoothController";
 
     public void startBLE() throws IOException {
+
+        if (DEBUG_MODE == true){
+            v.vibrate(500); // Vibrate for 500 milliseconds
+            msg.triggerMsg("BLE started??");
+        }
+
         Config.shouldConnect = true; // may be an assertion..
         if(Config.isCentral) {
             mBluetoothCentralScan = new BluetoothCentralScan(mContext, this);
@@ -48,16 +68,22 @@ public class BluetoothController implements
             mBluetoothPeripheral = new BluetoothPeripheral(mContext, this);
             mBluetoothPeripheral.startAdvertising();
         }
+
+
     }
 
     // Central device
-    // todo: george.. callback for data collection
     @Override
-    public void connected() {
-        Log.i(LOG_TAG, "Central Connected");
-        Log.i(LOG_TAG, "Start recording");
-        // Code to start recording..
+    public void connected() throws FileNotFoundException {
+        if (DEBUG_MODE == true){
+            v.vibrate(500); // Vibrate for 500 milliseconds
+            msg.triggerMsg("Central Connected");
+            Log.i(LOG_TAG, "Central Connected");
+            Log.i(LOG_TAG, "Start recording");
+        }
 
+        // Code to start recording..
+        dataCollector.collectDataCallBack();
         // After recording
     }
 
@@ -72,7 +98,12 @@ public class BluetoothController implements
     // Central device
     @Override
     public void found(BluetoothDevice device) {
-        Log.i(LOG_TAG, "Device found trying for VAD");
+        if (DEBUG_MODE == true) {
+            v.vibrate(500); // Vibrate for 500 milliseconds
+            msg.triggerMsg("Device found trying for VAD");
+            Log.i(LOG_TAG, "Device found trying for VAD");
+        }
+
         voiceDetector = new VAD(this);
         voiceDetector.recordSound();
         mDevice = device;
@@ -80,17 +111,28 @@ public class BluetoothController implements
 
     // peripheral device
     @Override
-    public void connected(String timestamp) {
-        Log.i(LOG_TAG, "Peripheral Connected");
-        Log.i(LOG_TAG, "Start recording");
-        // Code to start recording..
+    public void connected(String timestamp) throws FileNotFoundException {
+        if (DEBUG_MODE == true){
+            v.vibrate(500); // Vibrate for 500 milliseconds
+            msg.triggerMsg("Peripheral Connected");
+            Log.i(LOG_TAG, "Peripheral Connected");
+            Log.i(LOG_TAG, "Start recording");
+        }
+
+        // Code to start recording..\
+        dataCollector.collectDataCallBack();
         // After recording
     }
 
     @Override
     public void speech() {
         if ((mDevice == null)) throw new AssertionError();
-        Log.i(LOG_TAG, "Voice detected trying to connect (also sending a timestamp message)");
+        if (DEBUG_MODE == true){
+            v.vibrate(500); // Vibrate for 500 milliseconds
+            msg.triggerMsg("Voice detected");
+            Log.i(LOG_TAG, "Voice detected trying to connect (also sending a timestamp message)");
+        }
+
         mBluetoothCentralConnect = new BluetoothCentralConnect(mContext, this);
         mBluetoothCentralConnect.connectDevice(mDevice,System.currentTimeMillis()+"");
         //mDevice = null;
@@ -99,6 +141,11 @@ public class BluetoothController implements
     //todo: prabhu: Logically it works, but still it is better if we can restart the scanning/adv process.
     @Override
     public void noSpeech() {
+        if (DEBUG_MODE == true){
+            v.vibrate(500); // Vibrate for 500 milliseconds
+            msg.triggerMsg("No voice detected");
+        }
+
         Config.shouldConnect = true;
     }
 
@@ -130,6 +177,11 @@ public class BluetoothController implements
             mBluetoothPeripheral = new BluetoothPeripheral(mContext, this);
             mBluetoothPeripheral.startAdvertising();
         }
+
+        if (DEBUG_MODE == true){
+            v.vibrate(500); // Vibrate for 500 milliseconds
+            msg.triggerMsg("BLE started");
+        }
     }
 
     @Override
@@ -149,6 +201,11 @@ public class BluetoothController implements
                 mBluetoothPeripheral.stopAdvertising();
             }
             mBluetoothPeripheral = null;
+        }
+
+        if (DEBUG_MODE == true){
+            v.vibrate(500); // Vibrate for 500 milliseconds
+            msg.triggerMsg("BLE stopped");
         }
 
     }
@@ -177,6 +234,11 @@ public class BluetoothController implements
             }
             mBluetoothPeripheral = new BluetoothPeripheral(mContext, this);
             mBluetoothPeripheral.startAdvertising();
+        }
+
+        if (DEBUG_MODE == true){
+            v.vibrate(500); // Vibrate for 500 milliseconds
+            msg.triggerMsg("BLE Restarted");
         }
     }
 }

@@ -12,6 +12,7 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.util.Log;
 
+import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -132,7 +133,11 @@ public class BluetoothCentralConnect {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.i(LOG_TAG, "Characteristic (message) written successfully");
                 //mPeriReadMessage = true;
-                mCentralConnectListener.connected();
+                try {
+                    mCentralConnectListener.connected();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
             } else {
                 //mDeviceFoundConnectionInterrupted = true;
                 mCentralConnectListener.notConnected(mDevice);
@@ -262,7 +267,7 @@ public class BluetoothCentralConnect {
     }
 
     public interface CentralConnectInterface{
-        void connected();
+        void connected() throws FileNotFoundException;
         void notConnected(BluetoothDevice device);
     }
 

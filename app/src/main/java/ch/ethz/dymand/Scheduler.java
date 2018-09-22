@@ -23,6 +23,7 @@ import static ch.ethz.dymand.Config.morningEndHourWeekday;
 import static ch.ethz.dymand.Config.morningStartHourWeekday;
 import static ch.ethz.dymand.Config.shouldConnect;
 import static ch.ethz.dymand.Config.startHourWeekend;
+import static ch.ethz.dymand.Config.DEBUG_MODE;
 import static ch.ethz.dymand.DataCollectionHour.COLLECT_DATA;
 import static ch.ethz.dymand.DataCollectionHour.END;
 import static ch.ethz.dymand.DataCollectionHour.END_OF_7_DAYS;
@@ -53,11 +54,10 @@ public class Scheduler {
     private static DataCollectionCallback dataCollection;
     private static MessageCallback msg;
     private static long minTimeBtnRecordings = 20 * 60 * 1000; //minimum time between recordings is 20 mins
-//    private static long DELAY_FOR_55_MINS = 55 * 60 * 1000; //5000; //
+    private static long DELAY_FOR_55_MINS = 50 * 60 * 1000; //5000; //
     private static long DELAY_FOR_60_MINS = 60 * 60 * 1000; //10000; //
-    private static long DELAY_FOR_55_MINS = 1 * 60 * 1000; //5000; //
+    //private static long DELAY_FOR_55_MINS = 1 * 60 * 1000; //5000; //
     //private static long DELAY_FOR_60_MINS = 5 * 60 * 1000; //10000; //
-    private static Timer timer;
     private static Calendar endOf7daysDate;
 
     //Ensures it is a singleton class
@@ -140,24 +140,27 @@ public class Scheduler {
         Runnable timerRunnable = new Runnable() {
             @Override
             public void run() {
+
+                if (DEBUG_MODE == true) {
+                    //TODO: Remove vibrator test in final version
+                    Vibrator v = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
+                    v.vibrate(500); // Vibrate for 500 milliseconds
+
+                    //TODO: Remove Trigger message to be displayed
+                    if (msg != null) {
+                        msg.triggerMsg("Start of new hour");
+                    }
+
+                    Log.d("Scheduler", "New hour start task performed on " + new Date());
+
+                }
+
                 try {
                     runEachHourly();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
 
-                //startTimerfor55mins();
-
-                //TODO: Remove vibrator test in final version
-                Vibrator v = (Vibrator)  context.getSystemService(VIBRATOR_SERVICE);
-                v.vibrate(500); // Vibrate for 500 milliseconds
-
-                //TODO: Remove Trigger message to be displayed
-                if(msg != null){
-                    msg.triggerMsg("Start of new hour");
-                }
-
-                Log.d("Scheduler","New hour start task performed on " + new Date());
                 timerHandler.postDelayed(this, DELAY_FOR_60_MINS);
             }
         };
@@ -165,32 +168,6 @@ public class Scheduler {
         //timerHandler.postDelayed(timerRunnable, 5000);
         timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
         //timerHandler.postDelayed(timerRunnable, millisUntilNextMondayStart);
-
-        /*
-        //Create timer task
-        TimerTask repeatedTask = new TimerTask() {
-            public void run() {
-                //runEachHourly();
-
-                startTimerfor55mins();
-
-                //TODO: Remove vibrator test in final version
-                Vibrator v = (Vibrator)  context.getSystemService(VIBRATOR_SERVICE);
-                v.vibrate(500); // Vibrate for 500 milliseconds
-
-                //TODO: Remove Trigger message to be displayed
-                if(msg != null){
-                    msg.triggerMsg("Start of new hour");
-                }
-
-                Log.d("Scheduler","New hour start task performed on " + new Date());
-            }
-        };
-        timer = new Timer("Timer");
-        timer.schedule(repeatedTask, 5000, DELAY_FOR_60_MINS);
-        //timer.scheduleAtFixedRate(repeatedTask, nextMondayDate.getTime(), DELAY_FOR_60_MINS);
-
-        */
     }
 
     /**
@@ -207,9 +184,9 @@ public class Scheduler {
 
             case START:
                 startTimerfor55mins();
-                delayDuration = setDelayDuration();
-                //dataCollection.collectDataCallBack(); //test
-                startTimerForBleStart(delayDuration);
+                //delayDuration = setDelayDuration();
+                collectData(); //test
+                //startTimerForBleStart(delayDuration);
                 break;
 
             case COLLECT_DATA:
@@ -236,7 +213,7 @@ public class Scheduler {
                 if (ble != null) {
                     ble.stopBleCallback();
                 }
-                timer.cancel();
+                //TODO: cancel timer
 
             default:
                 break;
@@ -256,53 +233,28 @@ public class Scheduler {
         Runnable timerRunnable = new Runnable() {
             @Override
             public void run() {
-//                try {
-//                    collectData();
-//                } catch (FileNotFoundException e) {
-//                    e.printStackTrace();
-//                }
 
-                //TODO: Remove vibrator test in final version
-                Vibrator v = (Vibrator)  context.getSystemService(VIBRATOR_SERVICE);
-                v.vibrate(500); // Vibrate for 500 milliseconds
+                if (DEBUG_MODE == true) {
+                    //TODO: Remove vibrator test in final version
+                    Vibrator v = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
+                    v.vibrate(500); // Vibrate for 500 milliseconds
 
 
-                //TODO: Remove trigger message to be displayed
-                msg.triggerMsg("Last 5 mins in hour");
-                Log.d("Scheduler", "Last 5 mins task performed on: " + new Date() + "n" +
-                        "Thread's name: " + Thread.currentThread().getName());
+                    //TODO: Remove trigger message to be displayed
+                    msg.triggerMsg("Last 5 mins in hour");
+                    Log.d("Scheduler", "Last 5 mins task performed on: " + new Date() + "n" +
+                            "Thread's name: " + Thread.currentThread().getName());
+                }
+
+                try {
+                    collectData();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
             }
         };
 
         timerHandler.postDelayed(timerRunnable, DELAY_FOR_55_MINS);
-
-        /*
-        TimerTask task = new TimerTask() {
-            public void run() {
-
-//                try {
-//                    collectData();
-//                } catch (FileNotFoundException e) {
-//                    e.printStackTrace();
-//                }
-
-                //TODO: Remove vibrator test in final version
-                Vibrator v = (Vibrator)  context.getSystemService(VIBRATOR_SERVICE);
-                v.vibrate(500); // Vibrate for 500 milliseconds
-
-
-                //TODO: Remove trigger message to be displayed
-                msg.triggerMsg("Last 5 mins in hour");
-                Log.d("Scheduler", "Last 5 mins task performed on: " + new Date() + "n" +
-                        "Thread's name: " + Thread.currentThread().getName());
-
-            }
-        };
-
-        Timer timer = new Timer("Timer");
-        timer.schedule(task, DELAY_FOR_55_MINS);
-
-        */
     }
 
 
@@ -337,7 +289,10 @@ public class Scheduler {
      */
     private static void startTimerForBleStart(long delay){
 
-        TimerTask task = new TimerTask() {
+        //Create timer using handler and runnable
+        final Handler timerHandler = new Handler();
+
+        Runnable timerRunnable = new Runnable() {
             public void run() {
                 if(ble != null) {
                     ble.startBleCallback();
@@ -347,8 +302,7 @@ public class Scheduler {
                         "Thread's name: " + Thread.currentThread().getName());
             }
         };
-        Timer timer = new Timer("Timer");
-        timer.schedule(task, delay);
+        timerHandler.postDelayed(timerRunnable, delay);
     }
 
     /**

@@ -19,6 +19,7 @@ import android.content.Context;
 import android.os.ParcelUuid;
 import android.util.Log;
 
+import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -190,7 +191,11 @@ public class BluetoothPeripheral {
 
             //connected with timestamp
             Log.i(LOG_TAG, "Call back to connected");
-            mPeripheralListener.connected(mTimeStamp);
+            try {
+                mPeripheralListener.connected(mTimeStamp);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
 
             characteristic.setValue(value);
             for (BluetoothDevice dev : mDevices) {
@@ -201,7 +206,7 @@ public class BluetoothPeripheral {
     }
 
     public interface PeripheralInterface{
-        void connected(String timestamp);
+        void connected(String timestamp) throws FileNotFoundException;
     }
 
 }

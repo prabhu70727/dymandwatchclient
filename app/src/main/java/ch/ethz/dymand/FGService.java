@@ -16,6 +16,8 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import ch.ethz.dymand.BluetoothCouple.BluetoothController;
+
 import static ch.ethz.dymand.Config.CHANNEL_ID;
 
 
@@ -24,6 +26,7 @@ public class FGService extends Service implements Callbacks.MessageCallback {
     private static final String LOG_TAG = "Logs: FGService";
     int ONGOING_NOTIFICATION_ID = Config.NOTIFICATION_ID;
     DataCollection dataCollector;
+    BluetoothController bleController;
     private static PowerManager.WakeLock lockStatic=null;
     private PowerManager.WakeLock lockLocal=null;
 
@@ -101,33 +104,39 @@ public class FGService extends Service implements Callbacks.MessageCallback {
         }
 
         startForeground(ONGOING_NOTIFICATION_ID, notification);
-        startScheduler();
+
 
         dataCollector = DataCollection.getInstance(this);
+        bleController = BluetoothController.getInstance(this);
+        startScheduler();
 
         //TODO: What to do if service killed and restarted?
-        return START_STICKY;
+        //return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     private void startScheduler(){
-        Thread t = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                Looper.prepare();
+//        Thread t = new Thread(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                Looper.prepare();
 
 
                 Scheduler sch = Scheduler.getInstance(FGService.this);
 
                 //Subscribe various callbacks
                 sch.subscribeMessageCallback(FGService.this);
+                dataCollector.subscribeMessageCallback(FGService.this);
+                bleController.subscribeMessageCallback(FGService.this);
                 sch.subscribeDataCollectionCallback(dataCollector);
+                sch.subscribeBleCallback(bleController);
                 sch.startHourlyTimer();
 
-                Looper.loop();
-            }
-        });
-        t.start();
+//                Looper.loop();
+//            }
+//        });
+//        t.start();
     }
 
 

@@ -12,9 +12,6 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,7 +22,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
@@ -34,12 +30,11 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import java.util.Date;
-import java.util.List;
 
 import ch.ethz.dymand.VoiceActivityDetection.VAD;
 
 
-public class MainActivity extends WearableActivity implements VAD.DataCollectionListener, Callbacks.DataCollectionCallback, Callbacks.BleCallback {
+public class MainActivity extends WearableActivity {
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_FINE_LOCATION = 2;
     private static String LOG_TAG="Logs: MainActivity";
@@ -119,8 +114,8 @@ public class MainActivity extends WearableActivity implements VAD.DataCollection
 
         //TODO: remove
         //VAD example
-        voiceDetector = new VAD(MainActivity.this);
-        voiceDetector.recordSound();
+//        voiceDetector = new VAD(MainActivity.this);
+//        voiceDetector.recordSound();
 
 
 
@@ -188,36 +183,36 @@ public class MainActivity extends WearableActivity implements VAD.DataCollection
 
 
     //TODO Implement these function
-    @Override
-    public void speech() {
-        Log.d("Data Collection", "Collecting sensor data...");
-    }
-
-    //TODO Implement these function
-    @Override
-    public void noSpeech(){
-        Log.d("Data Collection", "No data collection...");
-    }
-
-    @Override
-    public void startBleCallback() {
-
-    }
-
-    @Override
-    public void reStartBleCallback() {
-
-    }
-
-    @Override
-    public void stopBleCallback() {
-
-    }
-
-    @Override
-    public void collectDataCallBack() {
-
-    }
+//    @Override
+//    public void speech() {
+//        Log.d("Data Collection", "Collecting sensor data...");
+//    }
+//
+//    //TODO Implement these function
+//    @Override
+//    public void noSpeech(){
+//        Log.d("Data Collection", "No data collection...");
+//    }
+//
+//    @Override
+//    public void startBleCallback() {
+//
+//    }
+//
+//    @Override
+//    public void reStartBleCallback() {
+//
+//    }
+//
+//    @Override
+//    public void stopBleCallback() {
+//
+//    }
+//
+//    @Override
+//    public void collectDataCallBack() {
+//
+//    }
 
 
     public static class MyWakefulReceiver extends WakefulBroadcastReceiver {

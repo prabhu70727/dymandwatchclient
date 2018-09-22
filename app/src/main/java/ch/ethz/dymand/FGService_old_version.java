@@ -112,7 +112,7 @@ public class FGService_old_version extends Service implements DataClient.OnDataC
         }
 
         startForeground(ONGOING_NOTIFICATION_ID, notification);
-        startIntervention();
+        //startIntervention();
         return START_NOT_STICKY;
     }
 
@@ -136,8 +136,8 @@ public class FGService_old_version extends Service implements DataClient.OnDataC
     }
 
     private void startBluetoothModularityTest() throws IOException {
-        BluetoothController bluetoothController = new BluetoothController(this);
-        bluetoothController.startBLE();
+        //BluetoothController bluetoothController = new BluetoothController(this);
+        //bluetoothController.startBLE();
     }
 
     private void doNothing() throws FileNotFoundException  {

@@ -226,6 +226,8 @@ public class VAD implements MicRecorder.MicrophoneListener {
     public void microphoneBuffer(short[] buffer, int window_size) {
         finishRecording();
 
+        listener.speech();//test
+
         boolean isSilent = isSilence(buffer);
 
         //Determine if is silence
