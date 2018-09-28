@@ -34,7 +34,7 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
     SensorRecorder mSensorRecorder;
     private  static DataCollection instance = null;
     private static MessageCallback msg;
-    private static long DELAY_FOR_5_MINS = 5 * 60 * 1000;
+    private static long DELAY_FOR_5_MINS = 1 * 60 * 1000;
     //private static long DELAY_FOR_5_MINS = 5 * 1000;
     private static long DELAY_FOR_2_MINS = 2 * 60 * 1000;
     private static long DELAY_FOR_3_MINS = 3 * 60 * 1000;
@@ -98,6 +98,11 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                     commCallback.signalPhone();
                 }
 
+
+                //Testing. TODO: Remove
+                hasSelfReportBeenStarted = true;
+                isSelfReportCompleted = true;
+
                 //Start 2 minute timer to check the survey has been completed
                 startFirst2minTimer();
             }
@@ -125,7 +130,7 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         if (DEBUG_MODE == true) {
             //TODO: Remove trigger message to be displayed
             msg.triggerMsg("Recording for 5 mins done");
-            Log.d("Scheduler", "Recording for 5 mins done: " + new Date() + "n" +
+            Log.d("Logs: Data Collection", "Recording for 5 mins done: " + new Date() + "n" +
                     "Thread's name: " + Thread.currentThread().getName());
 
         }
@@ -147,7 +152,7 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
             @Override
             public void run() {
 
-                //Check if self report has been completed
+                //Check if self report has been started
                 //TODO: Add code that updates isSelfReportCompleted
                 if (!hasSelfReportBeenStarted){
 
@@ -156,6 +161,20 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
 
                     //Start another 2 minute timer to check the survey has been completed, else disregard recording
                     startSecond2minTimer();
+                }else{
+                    //Check if self report has been completed
+                    if (!isSelfReportCompleted){
+                        if (DEBUG_MODE == true) {
+                            //TODO: Remove trigger message to be displayed
+                            msg.triggerMsg("3 mins alert");
+                            Log.d("Scheduler", "Recording for 5 mins done: " + new Date() + "n" +
+                                    "Thread's name: " + Thread.currentThread().getName());
+
+                        }
+
+                        //TODO: Start timer
+
+                    }
                 }
             }
         };

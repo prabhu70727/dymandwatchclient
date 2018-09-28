@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/dark_grey"
     android:padding="@dimen/box_inset_layout_padding"
-    tools:context=".SetupUUID"
+    tools:context=".Setup.SetupUUID"
     tools:deviceIds="wear">
 
     <LinearLayout
@@ -36,6 +36,16 @@
             <!--android:layout_width="match_parent"-->
             <!--android:layout_height="wrap_content"-->
             <!--android:inputType="number" />-->
+
+        <TextView
+            android:id="@+id/select_color"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:textAlignment="center"
+            android:textSize="15dp"
+            android:text="@string/subejct_id_info" />
+
         <android.support.design.widget.TextInputLayout
             android:id="@+id/idWrapper"
             android:layout_width="match_parent"
@@ -53,9 +63,9 @@
 
         <Button
             android:id="@+id/btn"
-            android:layout_marginTop="4dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textSize="@dimen/text_size"
             android:text="Submit"/>
 
 

@@ -45,7 +45,7 @@ public class Config {
     public static final int RECORDER_SAMPLE_RATE = 96000;
     public static final int RECORDER_ENCODING_BIT_RATE = 200000;
 
-    public static boolean isCentral = true;
+    public static boolean isCentral = false;
     public static final int SYNC_BUFFER = 5 * (MINUTE/60); //To sync between central and peripheral
     public static final int threshold = -100;
 
@@ -76,6 +76,10 @@ public class Config {
     //Bluetooth couple
     public static boolean shouldConnect = false;
     public static File bleSSFile = new File("Bluetooth");
+
+
+    //For testing
+    public static boolean SHOULD_SKIP_SET_UP = false;
 }
 
 /* The Sensors in Polar M600 are

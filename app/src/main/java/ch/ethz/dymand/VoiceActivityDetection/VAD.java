@@ -228,22 +228,22 @@ public class VAD implements MicRecorder.MicrophoneListener {
 
         listener.speech();//test
 
-        boolean isSilent = isSilence(buffer);
-
-        //Determine if is silence
-        if (!isSilent){
-            boolean isSpeaking = isSpeech(buffer);
-
-            if (isSpeaking){
-                setStartDataCollection(isSpeaking);
-                listener.speech();
-            }else{
-                listener.noSpeech();
-            }
-
-        }else {
-            listener.noSpeech();
-        }
+//        boolean isSilent = isSilence(buffer);
+//
+//        //Determine if is silence
+//        if (!isSilent){
+//            boolean isSpeaking = isSpeech(buffer);
+//
+//            if (isSpeaking){
+//                setStartDataCollection(isSpeaking);
+//                listener.speech();
+//            }else{
+//                listener.noSpeech();
+//            }
+//
+//        }else {
+//            listener.noSpeech();
+//        }
 
     }
 

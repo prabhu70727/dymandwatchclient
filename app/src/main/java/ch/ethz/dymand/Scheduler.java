@@ -55,7 +55,8 @@ public class Scheduler {
     private static MessageCallback msg;
     private static long minTimeBtnRecordings = 20 * 60 * 1000; //minimum time between recordings is 20 mins
     private static long DELAY_FOR_55_MINS = 50 * 60 * 1000; //5000; //
-    private static long DELAY_FOR_60_MINS = 60 * 60 * 1000; //10000; //
+    private static long DELAY_FOR_60_MINS = 5 * 60 * 1000; //10000; //
+    private static long DELAY_FOR_1_MIN =  5 * 1000; //10000; //
     //private static long DELAY_FOR_55_MINS = 1 * 60 * 1000; //5000; //
     //private static long DELAY_FOR_60_MINS = 5 * 60 * 1000; //10000; //
     private static Calendar endOf7daysDate;
@@ -83,6 +84,39 @@ public class Scheduler {
 
     public void subscribeDataCollectionCallback (DataCollectionCallback dataCollectionInput){
         dataCollection = dataCollectionInput;
+    }
+
+    public void startDemoTimer(){
+        //Create timer using handler and runnable
+        final Handler timerHandler = new Handler();
+
+        Runnable timerRunnable = new Runnable() {
+            @Override
+            public void run() {
+
+                if (DEBUG_MODE == true) {
+                    //TODO: Remove vibrator test in final version
+                    Vibrator v = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
+                    v.vibrate(500); // Vibrate for 500 milliseconds
+
+                    //TODO: Remove Trigger message to be displayed
+                    if (msg != null) {
+                        msg.triggerMsg("Start of new hour");
+                    }
+
+                    Log.d("Scheduler", "New hour start task performed on " + new Date());
+
+                }
+
+                try {
+                    collectData();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        timerHandler.postDelayed(timerRunnable, DELAY_FOR_1_MIN);
     }
 
     /**
@@ -156,7 +190,7 @@ public class Scheduler {
                 }
 
                 try {
-                    runEachHourly();
+                    collectData();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -165,8 +199,8 @@ public class Scheduler {
             }
         };
 
-        //timerHandler.postDelayed(timerRunnable, 5000);
-        timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+        timerHandler.postDelayed(timerRunnable, 5000);
+        //timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
         //timerHandler.postDelayed(timerRunnable, millisUntilNextMondayStart);
     }
 
@@ -184,9 +218,9 @@ public class Scheduler {
 
             case START:
                 startTimerfor55mins();
-                //delayDuration = setDelayDuration();
-                collectData(); //test
-                //startTimerForBleStart(delayDuration);
+                delayDuration = setDelayDuration();
+                //collectData(); //test
+                startTimerForBleStart(delayDuration);
                 break;
 
             case COLLECT_DATA:

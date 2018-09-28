@@ -1,4 +1,4 @@
-package ch.ethz.dymand;
+package ch.ethz.dymand.Examples;
 
 public class TimerExample {
 

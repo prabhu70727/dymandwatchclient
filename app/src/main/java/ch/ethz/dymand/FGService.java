@@ -16,6 +16,7 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import OldCode.SetupActivity_Old;
 import ch.ethz.dymand.BluetoothCouple.BluetoothController;
 
 import static ch.ethz.dymand.Config.CHANNEL_ID;
@@ -72,7 +73,7 @@ public class FGService extends Service implements Callbacks.MessageCallback {
 
 
         Notification notification = null;
-        Intent notificationIntent = new Intent(this, SetupActivity.class);
+        Intent notificationIntent = new Intent(this, SetupActivity_Old.class);
         PendingIntent pendingIntent =
                 PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
@@ -131,7 +132,9 @@ public class FGService extends Service implements Callbacks.MessageCallback {
                 bleController.subscribeMessageCallback(FGService.this);
                 sch.subscribeDataCollectionCallback(dataCollector);
                 sch.subscribeBleCallback(bleController);
-                sch.startHourlyTimer();
+                sch.startDemoTimer();
+
+                //sch.startHourlyTimer();
 
 //                Looper.loop();
 //            }
