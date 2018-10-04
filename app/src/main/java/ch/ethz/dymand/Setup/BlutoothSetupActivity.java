@@ -16,6 +16,8 @@ import ch.ethz.dymand.FGService;
 import ch.ethz.dymand.R;
 import ch.ethz.dymand.Setup.SetupUUID;
 
+import static ch.ethz.dymand.Config.subjectID;
+
 
 public class BlutoothSetupActivity extends WearableActivity {
 
@@ -78,7 +80,7 @@ public class BlutoothSetupActivity extends WearableActivity {
         Toast.makeText(this, "Starting a central service", Toast.LENGTH_SHORT).show();
 
         Config.isCentral = true;
-
+        subjectID = "P";
 
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 //            startForegroundService(mService);
@@ -117,6 +119,7 @@ public class BlutoothSetupActivity extends WearableActivity {
         Toast.makeText(this, "Starting a peripheral service", Toast.LENGTH_SHORT).show();
 
         Config.isCentral = false;
+        subjectID = "Z";
 
         //Bundle b = new Bundle();
         //b.putParcelable("data",mbluetoothManager );

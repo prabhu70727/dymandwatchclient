@@ -18,15 +18,24 @@ import ch.ethz.dymand.Sensors.SensorRecorder;
 
 import static android.content.Context.VIBRATOR_SERVICE;
 import static ch.ethz.dymand.Config.DEBUG_MODE;
+import static ch.ethz.dymand.Config.dataCollectStartDate;
+import static ch.ethz.dymand.Config.dataCollectEndDate;
+import static ch.ethz.dymand.Config.getDateNow;
 import static ch.ethz.dymand.Config.hasSelfReportBeenStarted;
 import static ch.ethz.dymand.Config.hasStartedRecording;
 import static ch.ethz.dymand.Config.isCentral;
 import static ch.ethz.dymand.Config.isSelfReportCompleted;
 import static ch.ethz.dymand.Config.lastRecordedTime;
 import static ch.ethz.dymand.Config.prevLastRecordedTime;
+import static ch.ethz.dymand.Config.recordedInHour;
 import static ch.ethz.dymand.Config.shouldConnect;
 import static ch.ethz.dymand.Callbacks.WatchPhoneCommCallback;
 import static ch.ethz.dymand.Callbacks.MessageCallback;
+import static ch.ethz.dymand.Config.surveyAlert1;
+import static ch.ethz.dymand.Config.surveyAlert1Date;
+import static ch.ethz.dymand.Config.surveyAlert2;
+import static ch.ethz.dymand.Config.surveyAlert2Date;
+import static ch.ethz.dymand.Config.surveyTriggerDate;
 
 public class DataCollection implements Callbacks.DataCollectionCallback{
 
@@ -34,7 +43,7 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
     SensorRecorder mSensorRecorder;
     private  static DataCollection instance = null;
     private static MessageCallback msg;
-    private static long DELAY_FOR_5_MINS = 1 * 60 * 1000;
+    private static long DELAY_FOR_5_MINS = 5 * 60 * 1000;
     //private static long DELAY_FOR_5_MINS = 5 * 1000;
     private static long DELAY_FOR_2_MINS = 2 * 60 * 1000;
     private static long DELAY_FOR_3_MINS = 3 * 60 * 1000;
@@ -77,6 +86,9 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         mAudioRecorder.startRecording(dirPath); // non blocking return.
         mSensorRecorder.startRecording(dirPath); // non blocking return.
 
+        //Record start of data collection
+        dataCollectStartDate = dataCollectStartDate + " | " + getDateNow();
+
         //Perform task after 5 minutes recording
         //Create timer using handler and runnable
         final Handler timerHandler = new Handler();
@@ -93,9 +105,16 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                 //Alert user
                 alertUser();
 
+
+                //Record alert
+                surveyAlert1 = true;
+                surveyAlert1Date = surveyAlert1Date + " | " + getDateNow();
+
                 //Send User intent to phone
                 if (commCallback != null) {
                     commCallback.signalPhone();
+
+                    surveyTriggerDate = surveyTriggerDate + " | " + getDateNow();
                 }
 
 
@@ -158,6 +177,10 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
 
                     //Alerts user
                     alertUser();
+
+                    //Record alert
+                    surveyAlert2 = true;
+                    surveyAlert2Date = surveyAlert2Date + " | " + getDateNow();
 
                     //Start another 2 minute timer to check the survey has been completed, else disregard recording
                     startSecond2minTimer();
@@ -259,10 +282,14 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         mAudioRecorder.stopRecording();
         mSensorRecorder.stopRecording();
 
+        //Record end of data collection
+        dataCollectEndDate = dataCollectEndDate + " | " + getDateNow();
+
         //Update values
         hasStartedRecording = false;
         prevLastRecordedTime = lastRecordedTime;
         lastRecordedTime = System.currentTimeMillis();
+        recordedInHour = true;
 
         if (DEBUG_MODE == true){
             msg.triggerMsg("Recording stopped");
@@ -274,7 +301,9 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
     @Override
     public void collectDataCallBack() throws FileNotFoundException {
         //Looper.prepare();
-        startRecording(""+ System.currentTimeMillis());
+        if(!hasStartedRecording && !recordedInHour) {
+            startRecording("" + System.currentTimeMillis());
+        }
         //Looper.loop();
     }
 }

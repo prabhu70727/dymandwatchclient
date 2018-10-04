@@ -17,6 +17,7 @@ import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.Date;
 
 import ch.ethz.dymand.Callbacks;
@@ -107,7 +108,11 @@ public class AlarmTrigger {
                     //Subscribe various callbacks
                     sch.subscribeMessageCallback(MyIntentService.this);
                     sch.subscribeDataCollectionCallback(dataCollector);
-                    sch.startHourlyTimer();
+                    try {
+                        sch.startHourlyTimer();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
                     Looper.loop();
 

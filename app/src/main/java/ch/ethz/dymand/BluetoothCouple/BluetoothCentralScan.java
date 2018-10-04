@@ -80,7 +80,11 @@ public class BluetoothCentralScan {
         if (mScanning && mBluetoothAdapter != null && mBluetoothAdapter.isEnabled() && mBluetoothLeScanner != null) {
             Log.i(LOG_TAG, "Bluetooth stopped Scanning");
             mBluetoothLeScanner.stopScan(mScanCallback);
-            bleSSFileStream.close();
+
+            if (bleSSFileStream != null){
+                bleSSFileStream.close();
+            }
+
         }
         mBluetoothManager = null;
         mScanning = false;

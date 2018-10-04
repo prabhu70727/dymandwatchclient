@@ -8,6 +8,8 @@ import android.hardware.SensorManager;
 import ch.ethz.dymand.Sensors.SensorRecorder;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.UUID;
 
 public class Config {
@@ -80,6 +82,36 @@ public class Config {
 
     //For testing
     public static boolean SHOULD_SKIP_SET_UP = false;
+
+    public static boolean recordedInHour = false;
+
+    //Log Status
+    public static String subjectID;
+    public static File logFile = null;
+    public static boolean logStatusFileCreated = false;
+    public static int batteryPercentage = 0;
+    public static int noSilenceNum = 0;
+    public static String noSilenceDates = "";
+    public static int vadNum = 0;
+    public static String vadDates = "";
+    public static String surveyAlert1Date = "";
+    public static boolean surveyAlert1 = false;
+    public static String surveyAlert2Date  = "";
+    public static boolean surveyAlert2 = false;
+    public static int surveyTriggerNum = 0;
+    public static String surveyTriggerDate  = "";
+    public static String dataCollectStartDate = "";
+    public static String dataCollectEndDate = "";
+    public static int closeEnoughNum = 0;
+    public static String closeEnoughDates = "";
+    public static boolean last5Mins = false;
+    static SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
+
+    public static String getDateNow(){
+
+        Calendar rightNow = Calendar.getInstance(); //get calendar instance
+        return df.format(rightNow.getTime());
+    }
 }
 
 /* The Sensors in Polar M600 are

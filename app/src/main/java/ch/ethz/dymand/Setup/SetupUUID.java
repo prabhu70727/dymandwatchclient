@@ -1,6 +1,7 @@
 package ch.ethz.dymand.Setup;
 
 import android.content.Intent;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
@@ -16,6 +17,7 @@ import ch.ethz.dymand.R;
 
 import static ch.ethz.dymand.Config.CHARACTERISTIC_STRING_BUFF;
 import static ch.ethz.dymand.Config.SERVICE_STRING_BUFF;
+import static ch.ethz.dymand.Config.subjectID;
 
 
 public class SetupUUID extends WearableActivity {
@@ -38,6 +40,8 @@ public class SetupUUID extends WearableActivity {
             @Override
             public void onClick(View v) {
                 String id = idWrapper.getEditText().getText().toString();
+
+                subjectID = subjectID + id;
 
                 Toast.makeText(SetupUUID.this, "Entered ID: " + id, Toast.LENGTH_SHORT).show();
                 createUUIDStrings(id);

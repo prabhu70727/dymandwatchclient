@@ -2,28 +2,53 @@ package ch.ethz.dymand;
 
 
 import android.content.Context;
+import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.util.Log;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static android.content.Context.BATTERY_SERVICE;
 import static android.content.Context.VIBRATOR_SERVICE;
+import static ch.ethz.dymand.Config.batteryPercentage;
+import static ch.ethz.dymand.Config.closeEnoughDates;
+import static ch.ethz.dymand.Config.closeEnoughNum;
+import static ch.ethz.dymand.Config.dataCollectEndDate;
+import static ch.ethz.dymand.Config.dataCollectStartDate;
 import static ch.ethz.dymand.Config.endHourWeekend;
 import static ch.ethz.dymand.Config.eveningEndHourWeekday;
 import static ch.ethz.dymand.Config.eveningStartHourWeekday;
 import static ch.ethz.dymand.Config.hasStartedRecording;
+import static ch.ethz.dymand.Config.last5Mins;
 import static ch.ethz.dymand.Config.lastRecordedTime;
+import static ch.ethz.dymand.Config.logStatusFileCreated;
 import static ch.ethz.dymand.Config.morningEndHourWeekday;
 import static ch.ethz.dymand.Config.morningStartHourWeekday;
+import static ch.ethz.dymand.Config.noSilenceDates;
+import static ch.ethz.dymand.Config.noSilenceNum;
+import static ch.ethz.dymand.Config.recordedInHour;
 import static ch.ethz.dymand.Config.shouldConnect;
 import static ch.ethz.dymand.Config.startHourWeekend;
 import static ch.ethz.dymand.Config.DEBUG_MODE;
+import static ch.ethz.dymand.Config.logFile;
+import static ch.ethz.dymand.Config.subjectID;
+import static ch.ethz.dymand.Config.surveyAlert1;
+import static ch.ethz.dymand.Config.surveyAlert1Date;
+import static ch.ethz.dymand.Config.surveyAlert2;
+import static ch.ethz.dymand.Config.surveyAlert2Date;
+import static ch.ethz.dymand.Config.surveyTriggerDate;
+import static ch.ethz.dymand.Config.surveyTriggerNum;
+import static ch.ethz.dymand.Config.vadDates;
+import static ch.ethz.dymand.Config.vadNum;
 import static ch.ethz.dymand.DataCollectionHour.COLLECT_DATA;
 import static ch.ethz.dymand.DataCollectionHour.END;
 import static ch.ethz.dymand.DataCollectionHour.END_OF_7_DAYS;
@@ -53,12 +78,13 @@ public class Scheduler {
     private static BleCallback ble;
     private static DataCollectionCallback dataCollection;
     private static MessageCallback msg;
-    private static long minTimeBtnRecordings = 20 * 60 * 1000; //minimum time between recordings is 20 mins
-    private static long DELAY_FOR_55_MINS = 50 * 60 * 1000; //5000; //
-    private static long DELAY_FOR_60_MINS = 5 * 60 * 1000; //10000; //
+    //private static long minTimeBtnRecordings = 20 * 60 * 1000; //minimum time between recordings is 20 mins
+    private static long minTimeBtnRecordings = 1 * 60 * 1000; //minimum time between recordings is 20 mins
+//    private static long DELAY_FOR_55_MINS = 3 * 60 * 1000; //5000; //
+//    private static long DELAY_FOR_60_MINS = 5 * 60 * 1000; //10000; //
     private static long DELAY_FOR_1_MIN =  5 * 1000; //10000; //
-    //private static long DELAY_FOR_55_MINS = 1 * 60 * 1000; //5000; //
-    //private static long DELAY_FOR_60_MINS = 5 * 60 * 1000; //10000; //
+    private static long DELAY_FOR_55_MINS = 44 * 60 * 1000; //5000; //
+    private static long DELAY_FOR_60_MINS = 60 * 60 * 1000; //10000; //
     private static Calendar endOf7daysDate;
 
     //Ensures it is a singleton class
@@ -123,7 +149,12 @@ public class Scheduler {
      * Start the timer that runs each hour
      * Set to start the next Monday at the morning start time
      */
-    public void startHourlyTimer(){
+    public void startHourlyTimer() throws IOException {
+
+        //TODO: Remove
+        logStatus();
+
+
         //Sets start time to next monday morning start time
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
         int today = rightNow.get(Calendar.DAY_OF_WEEK);
@@ -190,19 +221,165 @@ public class Scheduler {
                 }
 
                 try {
-                    collectData();
+                    logStatus();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    runEachHourly();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
+
+                //TODO: remove for actual deployment
+//                try {
+//                    collectData();
+//                } catch (FileNotFoundException e) {
+//                    e.printStackTrace();
+//                }
 
                 timerHandler.postDelayed(this, DELAY_FOR_60_MINS);
             }
         };
 
-        timerHandler.postDelayed(timerRunnable, 5000);
-        //timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+        //timerHandler.postDelayed(timerRunnable, 5000);
+        timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
         //timerHandler.postDelayed(timerRunnable, millisUntilNextMondayStart);
     }
+
+    /**
+     *
+     */
+    private static String createLogStatusString(){
+        //Create string to log
+        StringBuilder outputString = new StringBuilder();
+
+        //Get info to log
+        BatteryManager bm = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
+        batteryPercentage = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+
+        SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
+        Calendar rightNow = Calendar.getInstance(); //get calendar instance
+
+        //Create String
+        outputString.append(df.format(rightNow.getTime()));
+        outputString.append(",");
+
+        outputString.append(batteryPercentage);
+        outputString.append(",");
+
+        outputString.append(noSilenceNum);
+        outputString.append(",");
+
+        outputString.append(noSilenceDates);
+        outputString.append(",");
+
+        outputString.append(vadNum);
+        outputString.append(",");
+
+        outputString.append(vadDates);
+        outputString.append(",");
+
+        outputString.append(surveyAlert1);
+        outputString.append(",");
+
+        outputString.append(surveyAlert1Date);
+        outputString.append(",");
+
+        outputString.append(surveyAlert2);
+        outputString.append(",");
+
+        outputString.append(surveyAlert2Date);
+        outputString.append(",");
+
+        outputString.append(surveyTriggerNum);
+        outputString.append(",");
+
+        outputString.append(surveyTriggerDate);
+        outputString.append(",");
+
+        outputString.append(dataCollectStartDate);
+        outputString.append(",");
+
+        outputString.append(dataCollectEndDate);
+        outputString.append(",");
+
+        outputString.append(closeEnoughNum);
+        outputString.append(",");
+
+        outputString.append(closeEnoughDates);
+        outputString.append(",");
+
+        outputString.append(last5Mins);
+        outputString.append("\n");
+
+
+        //Reset previous hour's status info
+        resetStatusInfo();
+
+        String logStatusString = outputString.toString();
+        return logStatusString;
+    }
+
+    /**
+     * Resets previous hour's status info
+     */
+    private static void resetStatusInfo(){
+        batteryPercentage = 0;
+        noSilenceNum = 0;
+        noSilenceDates = "";
+        vadNum = 0;
+        vadDates = "";
+        surveyAlert1Date = "";
+        surveyAlert1 = false;
+        surveyAlert2Date  = "";
+        surveyAlert2 = false;
+        surveyTriggerNum = 0;
+        surveyTriggerDate  = "";
+        dataCollectStartDate = "";
+        dataCollectEndDate = "";
+        closeEnoughNum = 0;
+        closeEnoughDates = "";
+        last5Mins = false;
+    }
+
+    /**
+     * Logs status of app over the past 1 hour to file
+     */
+    private static void logStatus() throws IOException {
+
+        if (!logStatusFileCreated) {
+            String dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath();
+            logFile = new File(dirPath, "log_status_" + subjectID + ".csv");
+            logStatusFileCreated = true;
+
+            //Log Subject id and header
+            FileOutputStream stream = new FileOutputStream(logFile);
+            String header = "Date Time, Battery Percentage, noSilenceNum, noSilenceDates,vadNum,vadDates," +
+                    "surveyAlert1, surveyAlert1Date, surveyAlert2, surveyAlert2Date, surveyTriggerNum, " +
+                    "surveyTriggerDate, dataCollectStartDate, dataCollectEndDate, closeEnoughNum, closeEnoughDates, last5Mins";
+            String log = "Subject ID: " + subjectID + "\n" + header + "\n";
+
+            try {
+                stream.write(log.getBytes());
+            } finally {
+                stream.close();
+            }
+        }
+
+        String outputString = createLogStatusString();
+
+        //Write status info to file
+        FileOutputStream stream = new FileOutputStream(logFile,true);
+        try {
+            stream.write(outputString.toString().getBytes());
+        } finally {
+            stream.close();
+        }
+
+    }
+
 
     /**
      * Executes at the start of each hour
@@ -210,6 +387,9 @@ public class Scheduler {
      */
     public static void runEachHourly() throws FileNotFoundException {
         long delayDuration;
+
+        //Reset recorded in hour
+        recordedInHour = false;
 
         //Check which hour it is
         DataCollectionHour hour = checkHour();
@@ -402,7 +582,7 @@ public class Scheduler {
      *  Collects data if data collection in this hour hasn't started
      */
     private static void collectData() throws FileNotFoundException {
-        if(!hasStartedRecording){
+        if(!hasStartedRecording && !recordedInHour){
             if (dataCollection != null){
                 dataCollection.collectDataCallBack();
             }

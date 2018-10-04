@@ -16,6 +16,8 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.IOException;
+
 import OldCode.SetupActivity_Old;
 import ch.ethz.dymand.BluetoothCouple.BluetoothController;
 
@@ -132,9 +134,13 @@ public class FGService extends Service implements Callbacks.MessageCallback {
                 bleController.subscribeMessageCallback(FGService.this);
                 sch.subscribeDataCollectionCallback(dataCollector);
                 sch.subscribeBleCallback(bleController);
-                sch.startDemoTimer();
+                //sch.startDemoTimer();
 
-                //sch.startHourlyTimer();
+        try {
+            sch.startHourlyTimer();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 //                Looper.loop();
 //            }

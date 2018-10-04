@@ -101,6 +101,6 @@ public class GetVoiceSampleActivity extends WearableActivity {
             }
         };
 
-        timerHandler.postDelayed(timerRunnable, 3000);
+        timerHandler.postDelayed(timerRunnable, 4000);
     }
 }

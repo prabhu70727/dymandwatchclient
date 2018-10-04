@@ -17,7 +17,10 @@ import ch.ethz.dymand.VoiceActivityDetection.VAD;
 
 import static android.content.Context.VIBRATOR_SERVICE;
 import static ch.ethz.dymand.Config.DEBUG_MODE;
+import static ch.ethz.dymand.Config.closeEnoughDates;
+import static ch.ethz.dymand.Config.getDateNow;
 import static ch.ethz.dymand.Config.hasStartedRecording;
+import static ch.ethz.dymand.Config.closeEnoughNum;
 
 
 public class BluetoothController implements
@@ -104,6 +107,10 @@ public class BluetoothController implements
             msg.triggerMsg("Device found trying for VAD");
             Log.i(LOG_TAG, "Device found trying for VAD");
         }
+
+        //Record closeness info
+        closeEnoughNum++;
+        closeEnoughDates = closeEnoughDates + " | " + getDateNow();
 
         voiceDetector = new VAD(this);
         voiceDetector.recordSound();
