@@ -9,6 +9,7 @@ import android.util.Log;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import OldCode.LocalTimer;
 import ch.ethz.dymand.Callbacks.MessageCallback;
 import ch.ethz.dymand.Callbacks.BleCallback;
 import ch.ethz.dymand.Config;
@@ -160,6 +161,7 @@ public class BluetoothController implements
     }
 
 
+    // todo check why mBluetoothManager.openGattServer() returns null
     @Override
     public void startBleCallback() {
         if ((!(Config.shouldConnect == true))) throw new AssertionError();
@@ -183,8 +185,16 @@ public class BluetoothController implements
             if (mBluetoothPeripheral != null) {
                 mBluetoothPeripheral.stopAdvertising();
             }
+
             mBluetoothPeripheral = new BluetoothPeripheral(mContext, this);
-            mBluetoothPeripheral.startAdvertising();
+            boolean advertizeDone = mBluetoothPeripheral.startAdvertising();
+
+            if(!advertizeDone){
+                LocalTimer.blockingLoop(2000);
+                mBluetoothPeripheral = null;
+                mBluetoothPeripheral = new BluetoothPeripheral(mContext, this);
+                assert(mBluetoothPeripheral.startAdvertising());
+            }
         }
 
         if (DEBUG_MODE == true) {

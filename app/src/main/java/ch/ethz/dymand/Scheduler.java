@@ -390,6 +390,7 @@ public class Scheduler {
 
         //Reset recorded in hour
         recordedInHour = false;
+        hasStartedRecording = false;
 
         //Check which hour it is
         DataCollectionHour hour = checkHour();

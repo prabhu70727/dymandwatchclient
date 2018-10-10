@@ -46,7 +46,7 @@ public class BluetoothPeripheral {
         mPeripheralListener = peripheralListener;
     }
 
-    public void startAdvertising() {
+    public boolean startAdvertising() {
         if(mAdvertising) {
             Log.i(LOG_TAG, "Assertion error");
             throw new AssertionError();
@@ -62,10 +62,17 @@ public class BluetoothPeripheral {
             mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
             GattServerCallback gattServerCallback = new GattServerCallback();
             mGattServer = mBluetoothManager.openGattServer(mContext, gattServerCallback);
+
+            if(mGattServer == null) {
+                Log.e(LOG_TAG, "Bluetooth enabled:" + mBluetoothAdapter.isEnabled());
+                return false;
+            }
+
             setupServer();
             advertise();
             mAdvertising = true;
             mTimeStamp = "0";
+            return true;
         }
     }
 
@@ -81,6 +88,7 @@ public class BluetoothPeripheral {
         }
         mAdvertising = false;
         mDevices = null;
+        mGattServer = null;
     }
 
 
