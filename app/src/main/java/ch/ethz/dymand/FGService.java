@@ -5,14 +5,21 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
+
+import java.io.IOException;
+
+import OldCode.SetupActivity_Old;
+import ch.ethz.dymand.BluetoothCouple.BluetoothController;
 
 import static ch.ethz.dymand.Config.CHANNEL_ID;
 
@@ -22,6 +29,9 @@ public class FGService extends Service implements Callbacks.MessageCallback {
     private static final String LOG_TAG = "Logs: FGService";
     int ONGOING_NOTIFICATION_ID = Config.NOTIFICATION_ID;
     DataCollection dataCollector;
+    BluetoothController bleController;
+    private static PowerManager.WakeLock lockStatic=null;
+    private PowerManager.WakeLock lockLocal=null;
 
     public FGService() {
     }
@@ -29,14 +39,43 @@ public class FGService extends Service implements Callbacks.MessageCallback {
     @Override
     public void onCreate() {
         super.onCreate();
+//        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+//        PowerManager.WakeLock lockLocal = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+//                "MyApp::MyWakelockTag");
+//        lockLocal.setReferenceCounted(true);
+//        lockLocal.acquire();
+//        PowerManager.WakeLock lock = getLock(this);
+//        Log.d(LOG_TAG, lock.toString());
+//        lock.release();
+    }
 
+    /**
+     * Acquire a partial static WakeLock, you need too call this within the class
+     * that calls startService()
+     * @param context
+     */
+    public static void acquireStaticLock(Context context) {
+        getLock(context).acquire();
+    }
+
+    synchronized private static PowerManager.WakeLock getLock(Context context) {
+        if (lockStatic==null) {
+            PowerManager
+                    mgr=(PowerManager)context.getSystemService(Context.POWER_SERVICE);
+            lockStatic=mgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                    "LOCK_NAME_STATIC");
+            lockStatic.setReferenceCounted(true);
+        }
+        return(lockStatic);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
+
+
         Notification notification = null;
-        Intent notificationIntent = new Intent(this, SetupActivity.class);
+        Intent notificationIntent = new Intent(this, SetupActivity_Old.class);
         PendingIntent pendingIntent =
                 PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
@@ -68,26 +107,45 @@ public class FGService extends Service implements Callbacks.MessageCallback {
         }
 
         startForeground(ONGOING_NOTIFICATION_ID, notification);
-        startScheduler();
+
 
         dataCollector = DataCollection.getInstance(this);
+        bleController = BluetoothController.getInstance(this);
+        startScheduler();
 
+        //TODO: What to do if service killed and restarted?
+        //return START_STICKY;
         return START_NOT_STICKY;
     }
 
     private void startScheduler(){
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
+//        Thread t = new Thread(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                Looper.prepare();
+
+
                 Scheduler sch = Scheduler.getInstance(FGService.this);
 
                 //Subscribe various callbacks
                 sch.subscribeMessageCallback(FGService.this);
+                dataCollector.subscribeMessageCallback(FGService.this);
+                bleController.subscribeMessageCallback(FGService.this);
                 sch.subscribeDataCollectionCallback(dataCollector);
-                sch.startHourlyTimer();
-            }
-        });
-        t.start();
+                sch.subscribeBleCallback(bleController);
+                //sch.startDemoTimer();
+
+        try {
+            sch.startHourlyTimer();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+//                Looper.loop();
+//            }
+//        });
+//        t.start();
     }
 
 
@@ -102,6 +160,8 @@ public class FGService extends Service implements Callbacks.MessageCallback {
         super.onDestroy();
         Log.i(LOG_TAG, "In onDestroy");
         Toast.makeText(this, "Service Detroyed!", Toast.LENGTH_SHORT).show();
+
+        //TODO: Send broadcast message to restart service if killed
     }
 
 

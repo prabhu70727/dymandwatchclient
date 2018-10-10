@@ -1,4 +1,4 @@
-package ch.ethz.dymand;
+package OldCode;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -14,6 +14,8 @@ import android.widget.Toast;
 import ch.ethz.dymand.Audio.BackgroundAudioRecorder;
 import ch.ethz.dymand.Bluetooth.BluetoothCentral;
 import ch.ethz.dymand.Bluetooth.BluetoothPeripheral;
+import ch.ethz.dymand.Config;
+import ch.ethz.dymand.R;
 import ch.ethz.dymand.Sensors.SensorRecorder;
 
 import java.io.File;
@@ -44,7 +46,7 @@ public class FGService_depricated extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        Intent notificationIntent = new Intent(this, SetupActivity.class);
+        Intent notificationIntent = new Intent(this, SetupActivity_Old.class);
         PendingIntent pendingIntent =
                 PendingIntent.getActivity(this, 0, notificationIntent, 0);
 

@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/dark_grey"
     android:padding="@dimen/box_inset_layout_padding"
-    tools:context="ch.ethz.dymand.Setup.MainActivity"
+    tools:context="ch.ethz.dymand.Setup.GetVoiceSampleActivity"
     tools:deviceIds="wear">
 
     <FrameLayout
@@ -16,12 +16,25 @@
         android:padding="@dimen/inner_frame_layout_padding"
         app:boxedEdges="all">
 
+        <TextView
+            android:id="@+id/text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:textSize="@dimen/text_size"
+            android:textAlignment="center"
+            android:text="@string/voice_sample_msg" />
+
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/recordBtn"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:onClick="startBluetoothSetupActivityOnClicked"
-            android:text="@string/start_setup" />
+            android:layout_height="wrap_content"
+            android:text="@string/start_msg"
+            android:textAllCaps="true"
+            android:background="@color/grey"
+            android:layout_gravity="bottom"/>
+
+
     </FrameLayout>
 </android.support.wear.widget.BoxInsetLayout>
 

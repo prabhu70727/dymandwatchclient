@@ -1,7 +1,9 @@
-package ch.ethz.dymand;
+package OldCode;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import ch.ethz.dymand.Config;
 
 /**
  * Created by prabhu on 09.02.18.

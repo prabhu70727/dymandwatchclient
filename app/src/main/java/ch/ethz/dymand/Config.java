@@ -8,9 +8,12 @@ import android.hardware.SensorManager;
 import ch.ethz.dymand.Sensors.SensorRecorder;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.UUID;
 
 public class Config {
+    public static boolean DEBUG_MODE = true;
     public static final int NOTIFICATION_ID = 71193;
     public static final String CHANNEL_ID = "DynamdNotificationServiceChannel";
 
@@ -44,7 +47,7 @@ public class Config {
     public static final int RECORDER_SAMPLE_RATE = 96000;
     public static final int RECORDER_ENCODING_BIT_RATE = 200000;
 
-    public static boolean isCentral = true;
+    public static boolean isCentral = false;
     public static final int SYNC_BUFFER = 5 * (MINUTE/60); //To sync between central and peripheral
     public static final int threshold = -100;
 
@@ -68,12 +71,47 @@ public class Config {
     public static int eveningEndHourWeekday = 22;
     public static int startHourWeekend = 9;
     public static int endHourWeekend = 22;
-    public static boolean isSelfReportCompleted;
+    public static boolean isSelfReportCompleted = false;
+    public static boolean hasSelfReportBeenStarted = false;
 
 
     //Bluetooth couple
     public static boolean shouldConnect = false;
     public static File bleSSFile = new File("Bluetooth");
+
+
+    //For testing
+    public static boolean SHOULD_SKIP_SET_UP = false;
+
+    public static boolean recordedInHour = false;
+
+    //Log Status
+    public static String subjectID;
+    public static File logFile = null;
+    public static boolean logStatusFileCreated = false;
+    public static int batteryPercentage = 0;
+    public static int noSilenceNum = 0;
+    public static String noSilenceDates = "";
+    public static int vadNum = 0;
+    public static String vadDates = "";
+    public static String surveyAlert1Date = "";
+    public static boolean surveyAlert1 = false;
+    public static String surveyAlert2Date  = "";
+    public static boolean surveyAlert2 = false;
+    public static int surveyTriggerNum = 0;
+    public static String surveyTriggerDate  = "";
+    public static String dataCollectStartDate = "";
+    public static String dataCollectEndDate = "";
+    public static int closeEnoughNum = 0;
+    public static String closeEnoughDates = "";
+    public static boolean last5Mins = false;
+    static SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
+
+    public static String getDateNow(){
+
+        Calendar rightNow = Calendar.getInstance(); //get calendar instance
+        return df.format(rightNow.getTime());
+    }
 }
 
 /* The Sensors in Polar M600 are

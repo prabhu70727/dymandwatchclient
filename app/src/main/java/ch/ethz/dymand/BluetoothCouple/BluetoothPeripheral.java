@@ -19,6 +19,7 @@ import android.content.Context;
 import android.os.ParcelUuid;
 import android.util.Log;
 
+import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,7 @@ public class BluetoothPeripheral {
         mPeripheralListener = peripheralListener;
     }
 
-    public void startAdvertising() {
+    public boolean startAdvertising() {
         if(mAdvertising) {
             Log.i(LOG_TAG, "Assertion error");
             throw new AssertionError();
@@ -61,10 +62,17 @@ public class BluetoothPeripheral {
             mBluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
             GattServerCallback gattServerCallback = new GattServerCallback();
             mGattServer = mBluetoothManager.openGattServer(mContext, gattServerCallback);
+
+            if(mGattServer == null) {
+                Log.e(LOG_TAG, "Bluetooth enabled:" + mBluetoothAdapter.isEnabled());
+                return false;
+            }
+
             setupServer();
             advertise();
             mAdvertising = true;
             mTimeStamp = "0";
+            return true;
         }
     }
 
@@ -80,6 +88,7 @@ public class BluetoothPeripheral {
         }
         mAdvertising = false;
         mDevices = null;
+        mGattServer = null;
     }
 
 
@@ -190,7 +199,11 @@ public class BluetoothPeripheral {
 
             //connected with timestamp
             Log.i(LOG_TAG, "Call back to connected");
-            mPeripheralListener.connected(mTimeStamp);
+            try {
+                mPeripheralListener.connected(mTimeStamp);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
 
             characteristic.setValue(value);
             for (BluetoothDevice dev : mDevices) {
@@ -201,7 +214,7 @@ public class BluetoothPeripheral {
     }
 
     public interface PeripheralInterface{
-        void connected(String timestamp);
+        void connected(String timestamp) throws FileNotFoundException;
     }
 
 }

@@ -1,4 +1,4 @@
-package ch.ethz.dymand;
+package OldCode;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -34,7 +34,8 @@ import java.io.IOException;
 import ch.ethz.dymand.Audio.BackgroundAudioRecorder;
 import ch.ethz.dymand.Bluetooth.BluetoothCentral;
 import ch.ethz.dymand.Bluetooth.BluetoothPeripheral;
-import ch.ethz.dymand.BluetoothCouple.BluetoothController;
+import ch.ethz.dymand.Config;
+import ch.ethz.dymand.R;
 import ch.ethz.dymand.Sensors.SensorRecorder;
 
 import static ch.ethz.dymand.Config.CHANNEL_ID;
@@ -80,7 +81,7 @@ public class FGService_old_version extends Service implements DataClient.OnDataC
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         Notification notification = null;
-        Intent notificationIntent = new Intent(this, SetupActivity.class);
+        Intent notificationIntent = new Intent(this, SetupActivity_Old.class);
         PendingIntent pendingIntent =
                 PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
@@ -112,7 +113,7 @@ public class FGService_old_version extends Service implements DataClient.OnDataC
         }
 
         startForeground(ONGOING_NOTIFICATION_ID, notification);
-        startIntervention();
+        //startIntervention();
         return START_NOT_STICKY;
     }
 
@@ -136,8 +137,8 @@ public class FGService_old_version extends Service implements DataClient.OnDataC
     }
 
     private void startBluetoothModularityTest() throws IOException {
-        BluetoothController bluetoothController = new BluetoothController(this);
-        bluetoothController.startBLE();
+        //BluetoothController bluetoothController = new BluetoothController(this);
+        //bluetoothController.startBLE();
     }
 
     private void doNothing() throws FileNotFoundException  {

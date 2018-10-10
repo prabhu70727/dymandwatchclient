@@ -1,6 +1,7 @@
-package ch.ethz.dymand;
+package ch.ethz.dymand.Setup;
 
 import android.content.Intent;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
@@ -11,8 +12,12 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import ch.ethz.dymand.FGService;
+import ch.ethz.dymand.R;
+
 import static ch.ethz.dymand.Config.CHARACTERISTIC_STRING_BUFF;
 import static ch.ethz.dymand.Config.SERVICE_STRING_BUFF;
+import static ch.ethz.dymand.Config.subjectID;
 
 
 public class SetupUUID extends WearableActivity {
@@ -35,18 +40,12 @@ public class SetupUUID extends WearableActivity {
             @Override
             public void onClick(View v) {
                 String id = idWrapper.getEditText().getText().toString();
-                mService = new Intent(SetupUUID.this, FGService.class);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForegroundService(mService);
-                }
-                else{
 
-                   startService(mService);
-                }
+                subjectID = subjectID + id;
 
-                Toast.makeText(SetupUUID.this, "Starting a  service: " + id, Toast.LENGTH_SHORT).show();
+                Toast.makeText(SetupUUID.this, "Entered ID: " + id, Toast.LENGTH_SHORT).show();
                 createUUIDStrings(id);
-                Intent intent = new Intent(SetupUUID.this, MainActivity.class);
+                Intent intent = new Intent(SetupUUID.this, GetConfigActivity.class);
                 startActivity(intent);
             }
         });
@@ -59,10 +58,9 @@ public class SetupUUID extends WearableActivity {
 
         //Create new UUID strings
         SERVICE_STRING_BUFF = SERVICE_STRING_BUFF.delete(len-enteredCodeLen,len).append(str);
-        CHARACTERISTIC_STRING_BUFF = CHARACTERISTIC_STRING_BUFF.delete(len-enteredCodeLen,len).append(str);
+        //CHARACTERISTIC_STRING_BUFF = CHARACTERISTIC_STRING_BUFF.delete(len-enteredCodeLen,len).append(str);
 
         Log.d("Service String", ": "+SERVICE_STRING_BUFF);
-        Log.d("Characteristic String", ": "+CHARACTERISTIC_STRING_BUFF);
 
     }
 

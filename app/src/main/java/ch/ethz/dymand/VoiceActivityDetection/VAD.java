@@ -3,6 +3,11 @@ package ch.ethz.dymand.VoiceActivityDetection;
 import android.os.Handler;
 import android.util.Log;
 
+import static ch.ethz.dymand.Config.getDateNow;
+import static ch.ethz.dymand.Config.noSilenceDates;
+import static ch.ethz.dymand.Config.noSilenceNum;
+import static ch.ethz.dymand.Config.vadDates;
+import static ch.ethz.dymand.Config.vadNum;
 import static ch.ethz.dymand.VoiceActivityDetection.ConfigVAD.*;
 
 
@@ -108,6 +113,7 @@ public class VAD implements MicRecorder.MicrophoneListener {
     public static boolean isSilence(short[] buffer){
         boolean isSilence = true;
 
+
         //Calculate energy
         double energy = calculateEnergy(buffer);
 
@@ -117,7 +123,10 @@ public class VAD implements MicRecorder.MicrophoneListener {
         }
 
         Log.d("Silence:", ""+isSilence);
-        return isSilence;
+
+        //tesing.. TODO: remove
+        return false;
+        //return isSilence;
     }
 
 
@@ -160,7 +169,10 @@ public class VAD implements MicRecorder.MicrophoneListener {
 
         isSpeech = classification == 1 ? true : false;
 
-        return isSpeech;
+        //Testing... TODO: remove
+        return true;
+
+        //return isSpeech;
     }
 
     /**
@@ -226,13 +238,19 @@ public class VAD implements MicRecorder.MicrophoneListener {
     public void microphoneBuffer(short[] buffer, int window_size) {
         finishRecording();
 
+
         boolean isSilent = isSilence(buffer);
 
         //Determine if is silence
         if (!isSilent){
             boolean isSpeaking = isSpeech(buffer);
+            noSilenceNum++;
+            noSilenceDates = noSilenceDates + " | " + getDateNow();
 
             if (isSpeaking){
+                vadNum++;
+                vadDates = vadDates + " | " + getDateNow();
+
                 setStartDataCollection(isSpeaking);
                 listener.speech();
             }else{

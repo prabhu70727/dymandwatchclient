@@ -15,6 +15,9 @@ import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
+import OldCode.LocalTimer;
+import OldCode.WatchMobileInterface;
+
 public class WatchPhoneCommunication implements DataClient.OnDataChangedListener{
 
     private static Context context;

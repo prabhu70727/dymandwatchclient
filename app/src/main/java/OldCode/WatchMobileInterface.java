@@ -1,7 +1,9 @@
-package ch.ethz.dymand;
+package OldCode;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import ch.ethz.dymand.Config;
 
 // TODO: the current one is just a demo
 public class WatchMobileInterface {

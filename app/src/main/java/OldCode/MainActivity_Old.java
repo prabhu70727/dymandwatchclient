@@ -1,4 +1,4 @@
-package ch.ethz.dymand;
+package OldCode;
 
 import android.Manifest;
 import android.app.Activity;
@@ -8,12 +8,8 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -23,12 +19,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import java.util.List;
-
+import OldCode.SetupActivity_Old;
+import ch.ethz.dymand.FGService;
+import ch.ethz.dymand.R;
+import ch.ethz.dymand.Setup.BlutoothSetupActivity;
 import ch.ethz.dymand.VoiceActivityDetection.VAD;
 
 
-public class MainActivity extends WearableActivity implements VAD.DataCollectionListener, Callbacks.DataCollectionCallback, Callbacks.BleCallback {
+public class MainActivity_Old extends WearableActivity {
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_FINE_LOCATION = 2;
     private static String LOG_TAG="Logs: MainActivity";
@@ -40,6 +38,7 @@ public class MainActivity extends WearableActivity implements VAD.DataCollection
     private BluetoothAdapter mBluetoothAdapter; // to check the capabilities of BLE
     private BluetoothManager mbluetoothManager;
     private VAD voiceDetector;
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -107,8 +106,14 @@ public class MainActivity extends WearableActivity implements VAD.DataCollection
 
         //TODO: remove
         //VAD example
-        voiceDetector = new VAD(MainActivity.this);
-        voiceDetector.recordSound();
+//        voiceDetector = new VAD(MainActivity.this);
+//        voiceDetector.recordSound();
+
+
+
+//        Intent intent = new Intent(this, MyWakefulReceiver.class);
+//        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+        //scheduleAlarm();
     }
 
     //TODO: Move to terminal activity in the set up process
@@ -117,6 +122,8 @@ public class MainActivity extends WearableActivity implements VAD.DataCollection
             Toast.makeText(this, "Service exists. Kill it before starting a new one...", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        FGService.acquireStaticLock(this);
         Intent mService = new Intent(this, FGService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(mService);
@@ -150,7 +157,7 @@ public class MainActivity extends WearableActivity implements VAD.DataCollection
 
     public void startSetupActivityOnClicked(View view) {
         Log.i(LOG_TAG, "Setup Intent starting...");
-        Intent intent = new Intent(this, SetupActivity.class);
+        Intent intent = new Intent(this, SetupActivity_Old.class);
         startActivity(intent);
     }
 
@@ -166,36 +173,4 @@ public class MainActivity extends WearableActivity implements VAD.DataCollection
         Log.i(LOG_TAG, "Requested user enables Bluetooth.");
     }
 
-
-    //TODO Implement these function
-    @Override
-    public void speech() {
-        Log.d("Data Collection", "Collecting sensor data...");
-    }
-
-    //TODO Implement these function
-    @Override
-    public void noSpeech(){
-        Log.d("Data Collection", "No data collection...");
-    }
-
-    @Override
-    public void startBleCallback() {
-
-    }
-
-    @Override
-    public void reStartBleCallback() {
-
-    }
-
-    @Override
-    public void stopBleCallback() {
-
-    }
-
-    @Override
-    public void collectDataCallBack() {
-
-    }
 }

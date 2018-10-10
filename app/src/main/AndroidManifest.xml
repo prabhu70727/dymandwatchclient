@@ -30,7 +30,7 @@
             android:value="true" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".Setup.MainActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -44,18 +44,47 @@
             android:enabled="true"
             android:exported="false" />
 
-        <activity
-            android:name=".SetupActivity"
-            android:label="@string/title_activity_setup"></activity>
+        <receiver android:name=".Setup.MainActivity$MyWakefulReceiver" />
+
+        <service android:name=".Setup.MainActivity$MyIntentService" />
 
         <activity
-            android:name=".BlutoothSetupActivity"
+            android:name="OldCode.SetupActivity_Old"
+            android:label="@string/title_activity_setup" />
+        <activity
+            android:name=".Setup.BlutoothSetupActivity"
             android:label="@string/title_activity_bluetooth_setup" />
-
         <activity
-            android:name=".SetupUUID"
+            android:name=".Setup.SetupUUID"
             android:label="@string/title_activity_setup_uuid"
             android:theme="@style/Theme.AppCompat" />
+        <activity
+            android:name=".Setup.GetConfigActivity"
+            android:label="@string/title_activity_get_config">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".Setup.SetupCompleteActivity"
+            android:label="@string/title_activity_setup_complete">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".Setup.GetVoiceSampleActivity"
+            android:label="@string/title_activity_get_voice_sample">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
