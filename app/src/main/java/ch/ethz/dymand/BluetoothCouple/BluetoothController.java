@@ -19,9 +19,13 @@ import ch.ethz.dymand.VoiceActivityDetection.VAD;
 import static android.content.Context.VIBRATOR_SERVICE;
 import static ch.ethz.dymand.Config.DEBUG_MODE;
 import static ch.ethz.dymand.Config.closeEnoughDates;
+import static ch.ethz.dymand.Config.collectDataNum;
+import static ch.ethz.dymand.Config.connectedDates;
+import static ch.ethz.dymand.Config.connectedNum;
 import static ch.ethz.dymand.Config.getDateNow;
 import static ch.ethz.dymand.Config.hasStartedRecording;
 import static ch.ethz.dymand.Config.closeEnoughNum;
+import static ch.ethz.dymand.Config.recordedInHour;
 
 
 public class BluetoothController implements
@@ -87,9 +91,13 @@ public class BluetoothController implements
             Log.i(LOG_TAG, "Start recording");
         }
 
+        connectedNum++;
+        connectedDates = connectedDates + Config.getDateNow();
+
         // Code to start recording..
         collectData();
         // After recording
+
     }
 
     // Central device
@@ -109,10 +117,6 @@ public class BluetoothController implements
             Log.i(LOG_TAG, "Device found trying for VAD");
         }
 
-        //Record closeness info
-        closeEnoughNum++;
-        closeEnoughDates = closeEnoughDates + " | " + getDateNow();
-
         voiceDetector = new VAD(this);
         voiceDetector.recordSound();
         mDevice = device;
@@ -127,12 +131,16 @@ public class BluetoothController implements
             Log.i(LOG_TAG, "Peripheral Connected");
             Log.i(LOG_TAG, "Start recording");
         }
+        connectedNum++;
+        connectedDates = connectedDates + Config.getDateNow();
 
         // Code to start recording..\
         //Looper.prepare();
         collectData();
         //Looper.loop();
         // After recording
+
+
     }
 
     @Override
@@ -193,7 +201,9 @@ public class BluetoothController implements
                 LocalTimer.blockingLoop(2000);
                 mBluetoothPeripheral = null;
                 mBluetoothPeripheral = new BluetoothPeripheral(mContext, this);
-                assert(mBluetoothPeripheral.startAdvertising());
+                if ((!mBluetoothPeripheral.startAdvertising())) {
+                    // todo HL
+                }
             }
         }
 
@@ -264,6 +274,9 @@ public class BluetoothController implements
      * Collects data if data collection in this hour hasn't started
      */
     private static void collectData() throws FileNotFoundException {
+        collectDataNum++;
+        connectedDates = connectedDates + getDateNow() + "H: " + hasStartedRecording + " R: " + recordedInHour;
+
         if (!hasStartedRecording) {
             if (dataCollector != null) {
                 Looper.prepare();
