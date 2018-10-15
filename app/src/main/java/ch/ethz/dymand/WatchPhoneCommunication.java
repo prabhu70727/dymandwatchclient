@@ -18,7 +18,11 @@ import com.google.android.gms.wearable.Wearable;
 import OldCode.LocalTimer;
 import OldCode.WatchMobileInterface;
 
-public class WatchPhoneCommunication implements DataClient.OnDataChangedListener{
+
+// Initialize and get instance: mWatchPhoneCommunication = WatchPhoneCommunication.getInstance(this);
+// Callbacks.WatchPhoneCommCallback.signalPhone is the callback
+
+public class WatchPhoneCommunication implements DataClient.OnDataChangedListener, Callbacks.WatchPhoneCommCallback{
 
     private static Context context;
 
@@ -108,7 +112,7 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
         });
     }
 
-    // todo : copy this functions contents into teh callback
+    //this functions contents is for the "user intent" callback
     public void sendRecordingDoneUserIntention(){
         sendIntention(RECORDING_DONE_PATH, RECORDING_DONE_KEY, RECORDING_DONE_MESSAGE);
     }
@@ -164,11 +168,13 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
 
     private void setHasStartedSelfReport() {
         Log.i(LOG_TAG, "Setting variable hasStartedSelfReport...");
+        Config.hasSelfReportBeenStarted = true;
     }
 
     private void setHasCompletedSelfReport() {
         Log.i(LOG_TAG, "Setting variable hasCompletedSelfReport...");
         sendIntention(SELF_REPORT_COMPLETED_ACK_PATH, SELF_REPORT_COMPLETED_ACK_KEY, SELF_REPORT_COMPLETED_ACK_MESSAGE);
+        Config.isSelfReportCompleted = true;
     }
 
     private void sendConfigurationReceivedACK() {
@@ -194,34 +200,9 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
         Log.i(LOG_TAG, "Configuration is " + configuration);
     }
 
-    //todo use (`prabhu) and remove
-    private void update(String string) {
-        if(string.contains(START_INTERVENTION_MESSAGE)){
-            Log.i(LOG_TAG, "Start Intervention is received.");
-            WatchMobileInterface.setStartIntervention();
-            sendAckToMobile();
-        }
-        else if (string.contains(INTENT_ACK)){
-            Log.i(LOG_TAG, "Intent ACK is received.");
-            intentSent = true;
-        }
-    }
 
-    //todo use (`prabhu) and remove
-    private void sendAckToMobile() {
-        PutDataMapRequest putDataMapReq = PutDataMapRequest.create(INTERVENTION);
-        putDataMapReq.getDataMap().putString(INTERVENE_KEY, INTERVENTION_ACK +  (System.currentTimeMillis()%100000));
-        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
-        putDataReq.isUrgent();
-        Wearable.getDataClient(context).putDataItem(putDataReq).addOnSuccessListener(new OnSuccessListener<DataItem>() {
-            @Override
-            public void onSuccess(DataItem dataItem) {
-                Log.i(LOG_TAG, "Sending intervention ack was successful: " + dataItem);
-            }
-        });
-    }
-
-    public void doSomething(){
-        Log.i(LOG_TAG, "Do smt.");
+    @Override
+    public void signalPhone() {
+        sendIntention(RECORDING_DONE_PATH, RECORDING_DONE_KEY, RECORDING_DONE_MESSAGE);
     }
 }
