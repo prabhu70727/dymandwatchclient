@@ -10,6 +10,8 @@ import ch.ethz.dymand.Config;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import static ch.ethz.dymand.Config.errorLogs;
+
 public class BackgroundAudioRecorder {
 
     private static final String LOG_TAG = "Logs: BackgroundAudioRecorder";
@@ -26,7 +28,7 @@ public class BackgroundAudioRecorder {
     }
 
     @SuppressLint("LongLogTag")
-    public void startRecording(String dirPath) throws FileNotFoundException {
+    public void startRecording(String dirPath) {
         audioRecorder = new MediaRecorder();
         audioRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         audioRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
@@ -47,7 +49,14 @@ public class BackgroundAudioRecorder {
             Log.i(LOG_TAG, "prepare() failed");
         }
         isRecording = true;
-        audioRecorder.start();
+
+        try {
+            audioRecorder.start();
+        }catch (IllegalStateException e){
+            Log.e(LOG_TAG, "Couldn't start recording: " + e.toString());
+            errorLogs = errorLogs + LOG_TAG +  ": Couldn't start recording: " + e.toString() + "\n";
+        }
+
         Log.i(LOG_TAG, "Started audio Recording");
     }
 

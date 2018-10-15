@@ -74,7 +74,6 @@ public class Config {
     public static boolean isSelfReportCompleted = false;
     public static boolean hasSelfReportBeenStarted = false;
 
-
     //Bluetooth couple
     public static boolean shouldConnect = false;
     public static File bleSSFile = new File("Bluetooth");
@@ -86,8 +85,10 @@ public class Config {
     public static boolean recordedInHour = false;
 
     //Log Status
+    public static String errorLogs = "";
     public static String subjectID;
     public static File logFile = null;
+    public static File errorLogFile = null;
     public static boolean logStatusFileCreated = false;
     public static int batteryPercentage = 0;
     public static int noSilenceNum = 0;
@@ -105,12 +106,140 @@ public class Config {
     public static int closeEnoughNum = 0;
     public static String closeEnoughDates = "";
     public static boolean last5Mins = false;
+    public static String advertisingStarted = "";
+    public static String advertisingStartedDates = "";
+    public static String scanWasStarted = "";
+    public static String scanStartDates = "";
+    public static int startScanTriggerNum = 0; //number of times startScan() is called
+    public static String startScanTriggerDates = ""; //dates when startScan() is called
+    public static int startAdvertTriggerNum = 0;
+    public static String startAdvertTriggerDates = "";
+    public static int connectedNum = 0;
+    public static String connectedDates = "";
+    public static int recordingTriggeredNum = 0;
+    public static String recordingTriggeredDates = "";
+    public static int collectDataNum = 0;
+    public static String collectDataDates = "";
+    public static String discardDates = "";
+
     static SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
 
     public static String getDateNow(){
 
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
-        return df.format(rightNow.getTime());
+        return df.format(rightNow.getTime())  + " | ";
+    }
+
+    public static String oldheader = "Date Time, " +
+            "Battery Percentage, noSilenceNum, noSilenceDates,vadNum,vadDates," +
+            "surveyAlert1, surveyAlert1Date, surveyAlert2, surveyAlert2Date, surveyTriggerNum, " +
+            "surveyTriggerDate, dataCollectStartDate, dataCollectEndDate, closeEnoughNum, closeEnoughDates, " +
+            "last5Mins,advertisingStarted, advertisingStartedDates,scanWasStarted, scanStartDates,startScanTriggerNum," +
+            "startScanTriggerDates, startAdvertTriggerNum, startAdvertTriggerDates,connectedNum,connectedDates";
+
+    public static String createLogHeader(){
+        StringBuilder headerBuff = new StringBuilder();
+
+        headerBuff.append("Date");
+        headerBuff.append(",");
+
+        headerBuff.append("batteryPercentage");
+        headerBuff.append(",");
+
+        if (Config.isCentral){
+
+            headerBuff.append("startScanTriggerNum");
+            headerBuff.append(",");
+
+            headerBuff.append("startScanTriggerDates");
+            headerBuff.append(",");
+
+            headerBuff.append("scanWasStarted");
+            headerBuff.append(",");
+
+            headerBuff.append("scanStartDates");
+            headerBuff.append(",");
+
+            headerBuff.append("closeEnoughNum");
+            headerBuff.append(",");
+
+            headerBuff.append("closeEnoughDates");
+            headerBuff.append(",");
+
+            headerBuff.append("noSilenceNum");
+            headerBuff.append(",");
+
+            headerBuff.append("noSilenceDates");
+            headerBuff.append(",");
+
+            headerBuff.append("vadNum");
+            headerBuff.append(",");
+
+            headerBuff.append("vadDates");
+            headerBuff.append(",");
+
+        }else{
+            headerBuff.append("startAdvertTriggerNum");
+            headerBuff.append(",");
+
+            headerBuff.append("startAdvertTriggerDates");
+            headerBuff.append(",");
+
+            headerBuff.append("advertisingStarted");
+            headerBuff.append(",");
+
+            headerBuff.append("advertisingStartedDates");
+            headerBuff.append(",");
+        }
+
+        headerBuff.append("connectedNum");
+        headerBuff.append(",");
+
+        headerBuff.append("connectedDates");
+        headerBuff.append(",");
+
+
+        headerBuff.append("collectDataNum");
+        headerBuff.append(",");
+
+        headerBuff.append("collectDataDates");
+        headerBuff.append(",");
+
+        headerBuff.append("recordingTriggeredNum");
+        headerBuff.append(",");
+
+        headerBuff.append("recordingTriggeredDates");
+        headerBuff.append(",");
+
+        headerBuff.append("dataCollectStartDate");
+        headerBuff.append(",");
+
+        headerBuff.append("dataCollectEndDate");
+        headerBuff.append(",");
+
+        headerBuff.append("surveyAlert1");
+        headerBuff.append(",");
+
+        headerBuff.append("surveyAlert1Date");
+        headerBuff.append(",");
+
+        headerBuff.append("surveyAlert2");
+        headerBuff.append(",");
+
+        headerBuff.append("surveyAlert2Date");
+        headerBuff.append(",");
+
+        headerBuff.append("surveyTriggerNum");
+        headerBuff.append(",");
+
+        headerBuff.append("surveyTriggerDate");
+        headerBuff.append(",");
+
+        headerBuff.append("last5Mins");
+        headerBuff.append(",");
+
+        headerBuff.append("discardDates");
+        return headerBuff.toString();
     }
 }
 

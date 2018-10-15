@@ -24,8 +24,16 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.ethz.dymand.Config;
+
 import static ch.ethz.dymand.Config.CHARACTERISTIC_UUID;
 import static ch.ethz.dymand.Config.SERVICE_UUID;
+import static ch.ethz.dymand.Config.advertisingStarted;
+import static ch.ethz.dymand.Config.advertisingStartedDates;
+import static ch.ethz.dymand.Config.errorLogs;
+import static ch.ethz.dymand.Config.getDateNow;
+import static ch.ethz.dymand.Config.startAdvertTriggerDates;
+import static ch.ethz.dymand.Config.startAdvertTriggerNum;
 
 public class BluetoothPeripheral {
     private static final String LOG_TAG = "Logs: BluetoothPeripheral";
@@ -47,9 +55,15 @@ public class BluetoothPeripheral {
     }
 
     public boolean startAdvertising() {
+
+        startAdvertTriggerNum++;
+        startAdvertTriggerDates = startAdvertTriggerDates + getDateNow();
+
         if(mAdvertising) {
-            Log.i(LOG_TAG, "Assertion error");
-            throw new AssertionError();
+            Log.e(LOG_TAG, "Assertion error starting advertisement multiple times");
+            errorLogs =  errorLogs + LOG_TAG + ": Assertion error starting advertisement multiple times"  + " \n";
+            return true;
+            //throw new AssertionError();
         }
         else{
             mDevices = new ArrayList<>();
@@ -65,19 +79,22 @@ public class BluetoothPeripheral {
 
             if(mGattServer == null) {
                 Log.e(LOG_TAG, "Bluetooth enabled:" + mBluetoothAdapter.isEnabled());
+                errorLogs =  errorLogs + LOG_TAG + ": Bluetooth enabled:" + mBluetoothAdapter.isEnabled()   + " \n";
                 return false;
             }
 
             setupServer();
             advertise();
-            mAdvertising = true;
             mTimeStamp = "0";
             return true;
         }
     }
 
     public void stopAdvertising() {
-        if (!mAdvertising) throw new AssertionError();
+        if (!mAdvertising) {
+            Log.e(LOG_TAG, "mAdvertising is not true when stopping the advertisement.");
+            errorLogs =  errorLogs + LOG_TAG + ": mAdvertising is not true when stopping the advertisement."   + " \n";
+        }
         if (mGattServer != null) {
             mGattServer.close();
             Log.i(LOG_TAG, "Gatt Server is closed");
@@ -112,12 +129,20 @@ public class BluetoothPeripheral {
             @Override
             public void onStartSuccess(AdvertiseSettings settingsInEffect) {
                 Log.i(LOG_TAG, "Peripheral advertising started.");
+
+                mAdvertising = true;
+                advertisingStarted = advertisingStarted + mAdvertising;
+                advertisingStartedDates = advertisingStartedDates + Config.getDateNow();
             }
 
             @Override
             public void onStartFailure(int errorCode) {
                 //AdvertiseCallback.ADVERTISE_FAILED_ALREADY_STARTED
                 Log.i(LOG_TAG, "Peripheral advertising failed: " + errorCode);
+
+                mAdvertising = false;
+                advertisingStarted = advertisingStarted + mAdvertising;
+                advertisingStartedDates = advertisingStartedDates + Config.getDateNow();
             }
         };
 

@@ -32,6 +32,7 @@ public class FGService extends Service implements Callbacks.MessageCallback {
     BluetoothController bleController;
     private static PowerManager.WakeLock lockStatic=null;
     private PowerManager.WakeLock lockLocal=null;
+    private Scheduler sch;
 
     public FGService() {
     }
@@ -126,7 +127,7 @@ public class FGService extends Service implements Callbacks.MessageCallback {
 //                Looper.prepare();
 
 
-                Scheduler sch = Scheduler.getInstance(FGService.this);
+                sch = Scheduler.getInstance(FGService.this);
 
                 //Subscribe various callbacks
                 sch.subscribeMessageCallback(FGService.this);
@@ -157,10 +158,18 @@ public class FGService extends Service implements Callbacks.MessageCallback {
 
     // TODO: cleanup
     public void onDestroy() {
-        super.onDestroy();
         Log.i(LOG_TAG, "In onDestroy");
         Toast.makeText(this, "Service Detroyed!", Toast.LENGTH_SHORT).show();
 
+        //Log status
+        try {
+            sch.logStatus();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        super.onDestroy();
         //TODO: Send broadcast message to restart service if killed
     }
 

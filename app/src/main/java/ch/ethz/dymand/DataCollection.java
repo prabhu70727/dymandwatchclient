@@ -2,9 +2,7 @@ package ch.ethz.dymand;
 
 import android.content.Context;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Vibrator;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.io.File;
@@ -20,6 +18,7 @@ import static android.content.Context.VIBRATOR_SERVICE;
 import static ch.ethz.dymand.Config.DEBUG_MODE;
 import static ch.ethz.dymand.Config.dataCollectStartDate;
 import static ch.ethz.dymand.Config.dataCollectEndDate;
+import static ch.ethz.dymand.Config.discardDates;
 import static ch.ethz.dymand.Config.getDateNow;
 import static ch.ethz.dymand.Config.hasSelfReportBeenStarted;
 import static ch.ethz.dymand.Config.hasStartedRecording;
@@ -28,6 +27,8 @@ import static ch.ethz.dymand.Config.isSelfReportCompleted;
 import static ch.ethz.dymand.Config.lastRecordedTime;
 import static ch.ethz.dymand.Config.prevLastRecordedTime;
 import static ch.ethz.dymand.Config.recordedInHour;
+import static ch.ethz.dymand.Config.recordingTriggeredDates;
+import static ch.ethz.dymand.Config.recordingTriggeredNum;
 import static ch.ethz.dymand.Config.shouldConnect;
 import static ch.ethz.dymand.Callbacks.WatchPhoneCommCallback;
 import static ch.ethz.dymand.Callbacks.MessageCallback;
@@ -44,9 +45,13 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
     private  static DataCollection instance = null;
     private static MessageCallback msg;
     private static long DELAY_FOR_5_MINS = 5 * 60 * 1000;
-    //private static long DELAY_FOR_5_MINS = 5 * 1000;
     private static long DELAY_FOR_2_MINS = 2 * 60 * 1000;
     private static long DELAY_FOR_3_MINS = 3 * 60 * 1000;
+    private static long DELAY_FOR_6_MINS = 6 * 60 * 1000;
+    private static long DELAY_FOR_8_MINS = 8 * 60 * 1000;
+
+    //private static long DELAY_FOR_5_MINS = 1 * 60  * 1000;
+
     private static final String LOG_TAG = "Data Collection";
     private WatchPhoneCommCallback commCallback;
 
@@ -73,6 +78,10 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         //Set variable to track whether recording has started
         hasStartedRecording = true;
 
+        //Log that recording has started
+        recordingTriggeredNum++;
+        recordingTriggeredDates = recordingTriggeredDates + getDateNow();
+
         String tag = "app_";
         if(isCentral) tag = tag+"black_";
         else tag = tag + "white_";
@@ -87,7 +96,7 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         mSensorRecorder.startRecording(dirPath); // non blocking return.
 
         //Record start of data collection
-        dataCollectStartDate = dataCollectStartDate + " | " + getDateNow();
+        dataCollectStartDate = dataCollectStartDate + getDateNow();
 
         //Perform task after 5 minutes recording
         //Create timer using handler and runnable
@@ -108,17 +117,18 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
 
                 //Record alert
                 surveyAlert1 = true;
-                surveyAlert1Date = surveyAlert1Date + " | " + getDateNow();
+                surveyAlert1Date = surveyAlert1Date + getDateNow();
 
                 //Send User intent to phone
                 if (commCallback != null) {
                     commCallback.signalPhone();
 
-                    surveyTriggerDate = surveyTriggerDate + " | " + getDateNow();
+                    surveyTriggerDate = surveyTriggerDate + getDateNow();
                 }
 
 
                 //Testing. TODO: Remove
+                hasStartedRecording = false;
                 hasSelfReportBeenStarted = true;
                 isSelfReportCompleted = true;
 
@@ -158,7 +168,7 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
     }
 
     /**
-     * Starts 2 minutes timer to check if filling of survey has started
+     * Starts 2-minute timer to check if filling of survey has started
      */
     private void startFirst2minTimer(){
 
@@ -180,7 +190,7 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
 
                     //Record alert
                     surveyAlert2 = true;
-                    surveyAlert2Date = surveyAlert2Date + " | " + getDateNow();
+                    surveyAlert2Date = surveyAlert2Date + getDateNow();
 
                     //Start another 2 minute timer to check the survey has been completed, else disregard recording
                     startSecond2minTimer();
@@ -190,13 +200,13 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                         if (DEBUG_MODE == true) {
                             //TODO: Remove trigger message to be displayed
                             msg.triggerMsg("3 mins alert");
-                            Log.d("Scheduler", "Recording for 5 mins done: " + new Date() + "n" +
+                            Log.d("Scheduler", "3 mins alert" + new Date() + "n" +
                                     "Thread's name: " + Thread.currentThread().getName());
 
                         }
 
-                        //TODO: Start timer
-
+                        //Start timer to check if self report has been submitted
+                        startSelfReportCheckTimer(DELAY_FOR_8_MINS);
                     }
                 }
             }
@@ -221,7 +231,8 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                 //Check again if filling of self report has been started.
                 if (!hasSelfReportBeenStarted){
 
-                    //TODO: Discard recording if not started
+                    //Mark recording as discarded if not completed
+                    discardDates = discardDates + getDateNow();
 
                     //Reset values
                     shouldConnect = true;
@@ -237,7 +248,7 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                                     "Thread's name: " + Thread.currentThread().getName());
 
                         }
-                        start3minTimer();
+                        startSelfReportCheckTimer(DELAY_FOR_6_MINS);
                     }
                 }
             }
@@ -249,28 +260,29 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
 
 
     /**
-     *  Starts  3 minutes timer to check if survey has been submitted
+     *  Starts timer to check if survey has been submitted
      */
-    private void start3minTimer(){
+    private void startSelfReportCheckTimer(long delay){
         TimerTask task = new TimerTask() {
             public void run() {
 
                 //Check again if self report has been completed.
                 if (!isSelfReportCompleted) {
 
-                    //TODO: Discard recording if not completed
+                    //Mark recording as discarded if not completed
+                    discardDates = discardDates + getDateNow();
 
                     //Reset values
-                    shouldConnect = true;
+                    hasStartedRecording = false;
                     lastRecordedTime = prevLastRecordedTime; //reset last recorded time
                     hasStartedRecording = false;
                 }
             }
         };
 
-        //Starts 3 minute timer
+        //Starts timer
         Timer timer = new Timer("Timer");
-        timer.schedule(task, DELAY_FOR_3_MINS);
+        timer.schedule(task, delay);
     }
 
 
@@ -283,10 +295,9 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         mSensorRecorder.stopRecording();
 
         //Record end of data collection
-        dataCollectEndDate = dataCollectEndDate + " | " + getDateNow();
+        dataCollectEndDate = dataCollectEndDate + getDateNow();
 
         //Update values
-        hasStartedRecording = false;
         prevLastRecordedTime = lastRecordedTime;
         lastRecordedTime = System.currentTimeMillis();
         recordedInHour = true;
