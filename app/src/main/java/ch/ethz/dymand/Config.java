@@ -2,8 +2,11 @@ package ch.ethz.dymand;
 
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.preference.PreferenceManager;
+import android.util.Log;
 
 import ch.ethz.dymand.Sensors.SensorRecorder;
 
@@ -13,8 +16,9 @@ import java.util.Calendar;
 import java.util.UUID;
 
 public class Config {
+    private static String LOG_TAG = "CONFIG: ";
     public static boolean DEBUG_MODE = true;
-    public static final int NOTIFICATION_ID = 71193;
+    public static final int NOTIFICATION_ID = 71193; //ID for foreground service - can be any number except zero
     public static final String CHANNEL_ID = "DynamdNotificationServiceChannel";
 
 
@@ -32,9 +36,11 @@ public class Config {
     //public static String SERVICE_STRING = "7D2EA28A-F7BD-485A-BD9D-92AD6ECFE93E";
     //public static String SERVICE_STRING = "e81f4267-5403-4646-8429-3d6a2ef85123";
     //public static String SERVICE_STRING = "7D2EA28A-F7BD-485A-BD9D-92AD6ECFE123";
-    public static String SERVICE_STRING = "e81f4267-5403-4646-8429-3d6a2ef85cc5";
+    //public static String SERVICE_STRING = "e81f4267-5403-4646-8429-3d6a2ef85cc5";
+    public static String SERVICE_STRING = "";
     public static StringBuilder SERVICE_STRING_BUFF = new StringBuilder("e81f4267-5403-4646-8429-3d6a2ef85cc2");
-    public static UUID SERVICE_UUID = UUID.fromString(SERVICE_STRING);
+    //public static UUID SERVICE_UUID = UUID.fromString(SERVICE_STRING);
+    public static UUID SERVICE_UUID;
 
     public static StringBuilder CHARACTERISTIC_STRING_BUFF = new StringBuilder("922e1110-dd53-41b4-bae1-05f795ccdcc");
     public static String CHARACTERISTIC_STRING = "7D2EBAAD-F7BD-485A-BD9D-92AD6ECFE93E";
@@ -84,6 +90,13 @@ public class Config {
 
     public static boolean recordedInHour = false;
 
+    //App status
+    public static boolean isSetupComplete = false;
+    public static boolean isDemoComplete = false;
+    public static boolean hasStudyStarted = false;
+    public static boolean hasLogFileBeenCreated = false;
+    public static boolean hasVoiceSampleBeenCollected = false;
+
     //Log Status
     public static String errorLogs = "";
     public static String subjectID;
@@ -128,6 +141,60 @@ public class Config {
 
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
         return df.format(rightNow.getTime())  + " | ";
+    }
+
+    public static void saveAppInfo(Context context){
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+        //Data collection hours
+        editor.putInt("morningStartHourWeekday", morningStartHourWeekday);
+        editor.putInt("morningEndHourWeekday", morningEndHourWeekday);
+        editor.putInt("eveningStartHourWeekday", eveningStartHourWeekday);
+        editor.putInt("eveningEndHourWeekday", eveningEndHourWeekday);
+        editor.putInt("startHourWeekend", startHourWeekend);
+        editor.putInt("endHourWeekend", endHourWeekend);
+        editor.apply();
+    }
+
+    public static void updateUUID(){
+        SERVICE_STRING = SERVICE_STRING_BUFF.toString();
+        SERVICE_UUID = UUID.fromString(SERVICE_STRING);
+    }
+
+    public static void getStoredAppData(Context context){
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        isSetupComplete = sharedPref.getBoolean("isSetupComplete", false);
+        isCentral = sharedPref.getBoolean("isCentral", false);
+        subjectID =  sharedPref.getString("subjectID", "0");
+        isDemoComplete = sharedPref.getBoolean("isDemoComplete", false);
+        hasVoiceSampleBeenCollected = sharedPref.getBoolean("hasVoiceSampleBeenCollected", false);
+        hasLogFileBeenCreated = sharedPref.getBoolean("hasLogFileBeenCreated", false);
+        hasStudyStarted = sharedPref.getBoolean("hasStudyStarted", false);
+        SERVICE_STRING = sharedPref.getString("SERVICE_STRING", "");
+        SERVICE_UUID = UUID.fromString(SERVICE_STRING);
+
+        morningStartHourWeekday = sharedPref.getInt("morningStartHourWeekday", 0);
+        morningEndHourWeekday = sharedPref.getInt("morningEndHourWeekday", 0);
+        eveningStartHourWeekday = sharedPref.getInt("eveningStartHourWeekday", 0);
+        eveningEndHourWeekday = sharedPref.getInt("eveningEndHourWeekday", 0);
+        startHourWeekend = sharedPref.getInt("startHourWeekend", 0);
+        endHourWeekend = sharedPref.getInt("endHourWeekend", 0);
+
+        //TODO: Log values to cross-check
+        Log.d(LOG_TAG, "isSetupComplete - " + isSetupComplete);
+        Log.d(LOG_TAG, "isCentral - " + isCentral);
+        Log.d(LOG_TAG, "subjectID - " + subjectID);
+        Log.d(LOG_TAG, "hasVoiceSampleBeenCollected - " + hasVoiceSampleBeenCollected);
+        Log.d(LOG_TAG, "hasLogFileBeenCreated - " + hasLogFileBeenCreated);
+        Log.d(LOG_TAG, "hasStudyStarted - " + hasStudyStarted);
+        Log.d(LOG_TAG, "SERVICE_STRING - " + SERVICE_STRING);
+        Log.d(LOG_TAG, "morningStartHourWeekday - " + morningStartHourWeekday);
+        Log.d(LOG_TAG, "morningEndHourWeekday - " + morningEndHourWeekday);
+        Log.d(LOG_TAG, "eveningStartHourWeekday - " + eveningStartHourWeekday);
+        Log.d(LOG_TAG, "eveningEndHourWeekday - " + eveningEndHourWeekday);
+        Log.d(LOG_TAG, "startHourWeekend - " + startHourWeekend);
+        Log.d(LOG_TAG, "endHourWeekend - " + endHourWeekend);
     }
 
     public static String oldheader = "Date Time, " +

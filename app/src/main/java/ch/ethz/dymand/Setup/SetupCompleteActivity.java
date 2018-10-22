@@ -3,14 +3,21 @@ package ch.ethz.dymand.Setup;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.wearable.activity.WearableActivity;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import ch.ethz.dymand.FGService;
 import ch.ethz.dymand.R;
+
+import static ch.ethz.dymand.Config.SERVICE_STRING_BUFF;
+import static ch.ethz.dymand.Config.isSetupComplete;
+import static ch.ethz.dymand.Config.saveAppInfo;
+import static ch.ethz.dymand.Config.subjectID;
 
 public class SetupCompleteActivity extends WearableActivity {
 
@@ -25,6 +32,19 @@ public class SetupCompleteActivity extends WearableActivity {
 
         // Enables Always-on
         setAmbientEnabled();
+        isSetupComplete = true;
+
+        //Save that setup is complete
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean("isSetupComplete", isSetupComplete);
+        editor.apply();
+
+        //TODO: move to GetConfigActivity after Prabhu pushes his changes
+        //Save hours of data collection
+        saveAppInfo(this);
+
+        //Start service
         startService();
     }
 

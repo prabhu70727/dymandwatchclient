@@ -7,10 +7,12 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -20,8 +22,14 @@ import java.io.IOException;
 
 import OldCode.SetupActivity_Old;
 import ch.ethz.dymand.BluetoothCouple.BluetoothController;
+import ch.ethz.dymand.Setup.MainActivity;
+import ch.ethz.dymand.Setup.SetupCompleteActivity;
 
 import static ch.ethz.dymand.Config.CHANNEL_ID;
+import static ch.ethz.dymand.Config.getStoredAppData;
+import static ch.ethz.dymand.Config.isDemoComplete;
+import static ch.ethz.dymand.Config.isSetupComplete;
+import static ch.ethz.dymand.Config.saveAppInfo;
 
 
 public class FGService extends Service implements Callbacks.MessageCallback {
@@ -76,7 +84,7 @@ public class FGService extends Service implements Callbacks.MessageCallback {
 
 
         Notification notification = null;
-        Intent notificationIntent = new Intent(this, SetupActivity_Old.class);
+        Intent notificationIntent = new Intent(this, SetupCompleteActivity.class);
         PendingIntent pendingIntent =
                 PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
@@ -109,33 +117,46 @@ public class FGService extends Service implements Callbacks.MessageCallback {
 
         startForeground(ONGOING_NOTIFICATION_ID, notification);
 
+        //Check if set up is complete
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        isSetupComplete = sharedPref.getBoolean("isSetupComplete", false);
+        //isSetupComplete = false;
+
+        //If set up is complete, get saved data
+        if (isSetupComplete){
+            getStoredAppData(this);
+        }else{
+            //Start set up process and kill service
+            Intent setupIntent = new Intent(this, MainActivity.class);
+            setupIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(setupIntent);
+            stopSelf();
+        }
 
         dataCollector = DataCollection.getInstance(this);
         bleController = BluetoothController.getInstance(this);
         startScheduler();
 
         //TODO: What to do if service killed and restarted?
-        //return START_STICKY;
-        return START_NOT_STICKY;
+        return START_STICKY; //restarts service if killed
+        //return START_NOT_STICKY; //
     }
 
     private void startScheduler(){
-//        Thread t = new Thread(new Runnable() {
-//
-//            @Override
-//            public void run() {
-//                Looper.prepare();
 
 
-                sch = Scheduler.getInstance(FGService.this);
+        sch = Scheduler.getInstance(FGService.this);
 
-                //Subscribe various callbacks
-                sch.subscribeMessageCallback(FGService.this);
-                dataCollector.subscribeMessageCallback(FGService.this);
-                bleController.subscribeMessageCallback(FGService.this);
-                sch.subscribeDataCollectionCallback(dataCollector);
-                sch.subscribeBleCallback(bleController);
-                //sch.startDemoTimer();
+        //Subscribe various callbacks
+        sch.subscribeMessageCallback(FGService.this);
+        dataCollector.subscribeMessageCallback(FGService.this);
+        bleController.subscribeMessageCallback(FGService.this);
+        sch.subscribeDataCollectionCallback(dataCollector);
+        sch.subscribeBleCallback(bleController);
+
+        if (!isDemoComplete){
+            //sch.startDemoTimer();
+        }
 
         try {
             sch.startHourlyTimer();
@@ -143,10 +164,6 @@ public class FGService extends Service implements Callbacks.MessageCallback {
             e.printStackTrace();
         }
 
-//                Looper.loop();
-//            }
-//        });
-//        t.start();
     }
 
 

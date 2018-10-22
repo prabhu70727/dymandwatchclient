@@ -2,9 +2,11 @@ package ch.ethz.dymand;
 
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.File;
@@ -34,8 +36,11 @@ import static ch.ethz.dymand.Config.errorLogFile;
 import static ch.ethz.dymand.Config.errorLogs;
 import static ch.ethz.dymand.Config.eveningEndHourWeekday;
 import static ch.ethz.dymand.Config.eveningStartHourWeekday;
+import static ch.ethz.dymand.Config.hasLogFileBeenCreated;
 import static ch.ethz.dymand.Config.hasSelfReportBeenStarted;
 import static ch.ethz.dymand.Config.hasStartedRecording;
+import static ch.ethz.dymand.Config.hasStudyStarted;
+import static ch.ethz.dymand.Config.isDemoComplete;
 import static ch.ethz.dymand.Config.isSelfReportCompleted;
 import static ch.ethz.dymand.Config.last5Mins;
 import static ch.ethz.dymand.Config.lastRecordedTime;
@@ -138,6 +143,13 @@ public class Scheduler {
             @Override
             public void run() {
 
+                //Record that demo is complete
+                //TODO: proxy for demo complete. Replace with actual check
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putBoolean("isDemoComplete", isDemoComplete);
+                editor.apply();
+
                 if (DEBUG_MODE == true) {
                     //TODO: Remove vibrator test in final version
                     Vibrator v = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
@@ -224,6 +236,17 @@ public class Scheduler {
             @Override
             public void run() {
 
+                //The first time the hourly timer get's triggered, note that the study has started
+                if (!hasStudyStarted){
+                    hasStudyStarted = true;
+
+                    //Store in persistent data storage
+                    SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+                    SharedPreferences.Editor editor = sharedPref.edit();
+                    editor.putBoolean("hasStudyStarted", hasStudyStarted);
+                    editor.apply();
+                }
+
                 if (DEBUG_MODE == true) {
                     //TODO: Remove vibrator test in final version
                     Vibrator v = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
@@ -238,11 +261,6 @@ public class Scheduler {
 
                 }
 
-                try {
-                    logStatus();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
 
                 try {
                     runEachHourly();
@@ -261,9 +279,21 @@ public class Scheduler {
             }
         };
 
-        //timerHandler.postDelayed(timerRunnable, 5000);
-        timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
-        //timerHandler.postDelayed(timerRunnable, millisUntilNextMondayStart);
+
+
+        if (hasStudyStarted){
+            timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+        }else {
+
+            //TODO: remove after testing
+            //timerHandler.postDelayed(timerRunnable, 5000);
+
+            //TODO: remove after testing
+            timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+
+            //timerHandler.postDelayed(timerRunnable, millisUntilNextMondayStart);
+        }
+
     }
 
     /**
@@ -433,10 +463,18 @@ public class Scheduler {
     public static void logStatus() throws IOException {
 
         if (!logStatusFileCreated) {
+
+            //Create files for logging status of app
             String dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath();
             logFile = new File(dirPath, "log_status_" + subjectID + ".csv");
             errorLogFile = new File(dirPath, "error_logs_" + subjectID + ".csv");
             logStatusFileCreated = true;
+
+            //Record that the files have been created and put in storage
+            hasLogFileBeenCreated = true;
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putBoolean("hasLogFileBeenCreated", hasLogFileBeenCreated);
 
             //Log Subject id and header
             FileOutputStream stream = new FileOutputStream(logFile);
