@@ -1,4 +1,4 @@
-package ch.ethz.dymand.Sensors;
+package OldCode;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -7,16 +7,17 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
 
-import ch.ethz.dymand.Config;
-
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class SensorRecorder implements SensorEventListener{
+import ch.ethz.dymand.Config;
+
+public class SensorRecorderOld implements SensorEventListener{
     private static final String LOG_TAG = "Logs: SensorRecorder";
     private static final int SENSOR_DELAY = Config.SENSOR_DELAY;
     private SensorManager mSensorManager;
@@ -25,42 +26,22 @@ public class SensorRecorder implements SensorEventListener{
     public List<File> mFiles = null;
     private HashMap<String, StringBuilder> mSensorIndex = null;
     private String extension = Config.SENSOR_FILE_EXTENSION;
-    private long currentTime = System.currentTimeMillis();
-    private long prevTime = System.currentTimeMillis();
 
-    public SensorRecorder(Context applicationContext){
+    public SensorRecorderOld(Context applicationContext){
         mSensorManager = (SensorManager) applicationContext.getSystemService(applicationContext.SENSOR_SERVICE);
         sensorList = Config.sensorList;
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        currentTime = System.currentTimeMillis();
-        long diff = currentTime - prevTime;
 
         String sensorName = event.sensor.getStringType();
-        int sensorType = event.sensor.getType();
-        StringBuilder toTrack = new StringBuilder(diff + "," + event.timestamp+","+event.accuracy);
-
-        //Update values at the specified sampling rate
-        int periodMillis = (Config.sensorPeriods.get(sensorType))/1000;
-
-        //Check if the time passed is more than period
-        if (diff > periodMillis){
-
-            //Get values from sensor
-            for(int i=0; i<event.values.length; i++) {
-                toTrack.append("," + event.values[i]);
-            }
-
-            Log.i(LOG_TAG, sensorName + "," + toTrack.toString());
-
-            //append new data sample
-            mSensorIndex.get(sensorName+extension).append(toTrack.toString()+"\n");
-
-            //Update previous time
-            prevTime = currentTime;
+        StringBuilder toTrack = new StringBuilder(event.timestamp+","+event.accuracy);
+        for(int i=0; i<event.values.length; i++) {
+            toTrack.append("," + event.values[i]);
         }
+        //Log.i(LOG_TAG, sensorName + "," + toTrack.toString());
+        mSensorIndex.get(sensorName+extension).append(toTrack.toString()+"\n");
     }
 
     @Override
@@ -68,7 +49,7 @@ public class SensorRecorder implements SensorEventListener{
 
     }
 
-    public void stopRecording(){
+    public void stopRecording() throws FileNotFoundException {
         if (mRecording) {
             mSensorManager.unregisterListener(this);
             mRecording = false;
@@ -97,31 +78,26 @@ public class SensorRecorder implements SensorEventListener{
 
         if (mRecording != false) throw new AssertionError();
 
-        Sensor sensor;
-        int sensorPeriod = 0;
         mFiles = new ArrayList<>();
         mSensorIndex = new HashMap<>();
 
         for(int sensorType:sensorList){
 
-            sensor = mSensorManager.getDefaultSensor(sensorType);
-
-            if(sensor != null) {
-                String sensorName = sensor.getStringType();
-
-                //creating files
-                File file = new File(dirPath, sensorName+extension);
-                mFiles.add(file);
-                StringBuilder init = new StringBuilder("");
-                mSensorIndex.put(file.getName(), init);
-
-                sensorPeriod = Config.sensorPeriods.get(sensorType);
-                mSensorManager.registerListener(this, sensor, sensorPeriod);
-                Log.i(LOG_TAG, "Started sensor "+sensorName+ " and recording");
-            }else {
+            Sensor sensor = mSensorManager.getDefaultSensor(sensorType);
+            if(sensor == null) {
                 Log.i(LOG_TAG, "Sensor of type "+ sensorType +" not available.");
                 continue;
             }
+
+            String sensorName = sensor.getStringType();
+            //creating files
+            File file = new File(dirPath, sensorName+extension);
+            mFiles.add(file);
+            StringBuilder init = new StringBuilder("");
+            mSensorIndex.put(file.getName(), init);
+
+            mSensorManager.registerListener(this, sensor, SENSOR_DELAY);
+            Log.i(LOG_TAG, "Started sensor "+sensorName+ " and recording");
         }
         mRecording = true;
     }

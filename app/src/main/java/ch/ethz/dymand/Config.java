@@ -13,6 +13,7 @@ import ch.ethz.dymand.Sensors.SensorRecorder;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class Config {
@@ -21,6 +22,16 @@ public class Config {
     public static final int NOTIFICATION_ID = 71193; //ID for foreground service - can be any number except zero
     public static final String CHANNEL_ID = "DynamdNotificationServiceChannel";
 
+    public static int HR_FREQ = 1; //Hz
+    public static int ACCEL_FREQ = 20;  //Hz
+    public static int GYRO_FREQ = 20; //Hz
+    public static int LIGHT_FREQ = 1; //HZ
+    public static int MILLIS = 1000000;
+
+    public static int ACCEL_PERIOD = MILLIS/ACCEL_FREQ;
+    public static int GYRO_PERIOD = MILLIS/GYRO_FREQ;
+    public static int HR_PERIOD = MILLIS/ HR_FREQ;
+    public static int LIGHT_PERIOD = MILLIS/LIGHT_FREQ;
 
     public static final int MINUTE = 60000; // number of milliseconds in a minute
     public static final int HOUR = MINUTE * 60;
@@ -63,6 +74,16 @@ public class Config {
             Sensor.TYPE_GYROSCOPE,
             Sensor.TYPE_LIGHT
     };
+
+    public static HashMap<Integer,Integer> sensorPeriods= new HashMap<Integer,Integer>();
+    static{
+        sensorPeriods.put(Sensor.TYPE_HEART_RATE, HR_PERIOD);
+        sensorPeriods.put(Sensor.TYPE_ACCELEROMETER, ACCEL_PERIOD);
+        sensorPeriods.put(Sensor.TYPE_GYROSCOPE, GYRO_PERIOD);
+        sensorPeriods.put(Sensor.TYPE_LIGHT, LIGHT_PERIOD);
+    }
+
+
     public static final String SENSOR_FILE_EXTENSION = ".csv";
 
     public static final int INTENT_EXPIRY = 5 * (MINUTE); // Time for the intent to expiry
