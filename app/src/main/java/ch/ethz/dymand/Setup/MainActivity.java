@@ -95,6 +95,8 @@ public class MainActivity extends WearableActivity {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         isSetupComplete = sharedPref.getBoolean("isSetupComplete", false);
 
+        Log.i("LOG_TAG", "Setup Complete: " + isSetupComplete);
+
         if (isSetupComplete){
         //if (true){
             startSetupCompleteActivity();

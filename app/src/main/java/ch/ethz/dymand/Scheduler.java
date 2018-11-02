@@ -261,6 +261,11 @@ public class Scheduler {
 
                 }
 
+                try {
+                    logStatus();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 try {
                     runEachHourly();
@@ -461,6 +466,8 @@ public class Scheduler {
      * Logs status of app over the past 1 hour to file
      */
     public static void logStatus() throws IOException {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        logStatusFileCreated = sharedPref.getBoolean("hasLogFileBeenCreated", false);
 
         if (!logStatusFileCreated) {
 
@@ -472,9 +479,9 @@ public class Scheduler {
 
             //Record that the files have been created and put in storage
             hasLogFileBeenCreated = true;
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
             SharedPreferences.Editor editor = sharedPref.edit();
             editor.putBoolean("hasLogFileBeenCreated", hasLogFileBeenCreated);
+            editor.apply();
 
             //Log Subject id and header
             FileOutputStream stream = new FileOutputStream(logFile);
