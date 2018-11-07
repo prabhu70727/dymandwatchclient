@@ -41,6 +41,7 @@ public class FGService extends Service implements Callbacks.MessageCallback {
     private static PowerManager.WakeLock lockStatic=null;
     private PowerManager.WakeLock lockLocal=null;
     private Scheduler sch;
+    private WatchPhoneCommunication mWatchPhoneCommunication;
 
     public FGService() {
     }
@@ -135,6 +136,8 @@ public class FGService extends Service implements Callbacks.MessageCallback {
 
         dataCollector = DataCollection.getInstance(this);
         bleController = BluetoothController.getInstance(this);
+        mWatchPhoneCommunication = WatchPhoneCommunication.getInstance(this);
+        mWatchPhoneCommunication.subscribeMessageCallback(this);
         startScheduler();
 
         //TODO: What to do if service killed and restarted?
@@ -150,6 +153,7 @@ public class FGService extends Service implements Callbacks.MessageCallback {
         //Subscribe various callbacks
         sch.subscribeMessageCallback(FGService.this);
         dataCollector.subscribeMessageCallback(FGService.this);
+        dataCollector.subscribePhoneCommCallback(mWatchPhoneCommunication);
         bleController.subscribeMessageCallback(FGService.this);
         sch.subscribeDataCollectionCallback(dataCollector);
         sch.subscribeBleCallback(bleController);

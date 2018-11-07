@@ -44,13 +44,13 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
     SensorRecorder mSensorRecorder;
     private  static DataCollection instance = null;
     private static MessageCallback msg;
-    private static long DELAY_FOR_5_MINS = 5 * 60 * 1000;
+    //private static long DELAY_FOR_5_MINS = 5 * 60 * 1000;
     private static long DELAY_FOR_2_MINS = 2 * 60 * 1000;
     private static long DELAY_FOR_3_MINS = 3 * 60 * 1000;
     private static long DELAY_FOR_6_MINS = 6 * 60 * 1000;
     private static long DELAY_FOR_8_MINS = 8 * 60 * 1000;
 
-    //private static long DELAY_FOR_5_MINS = 1 * 60  * 1000;
+    private static long DELAY_FOR_5_MINS = 5 * 60  * 1000;
 
     private static final String LOG_TAG = "Data Collection";
     private WatchPhoneCommCallback commCallback;
@@ -69,7 +69,7 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         msg = msgInput;
     }
 
-    public void subscribeMessageCallback(WatchPhoneCommCallback commCallbackInput){
+    public void subscribePhoneCommCallback(WatchPhoneCommCallback commCallbackInput){
         commCallback = commCallbackInput;
     }
 
@@ -128,9 +128,9 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
 
 
                 //Testing. TODO: Remove
-                hasStartedRecording = false;
-                hasSelfReportBeenStarted = true;
-                isSelfReportCompleted = true;
+                //--- hasStartedRecording = false;
+                //hasSelfReportBeenStarted = true;
+                //isSelfReportCompleted = true;
 
                 //Start 2 minute timer to check the survey has been completed
                 startFirst2minTimer();
