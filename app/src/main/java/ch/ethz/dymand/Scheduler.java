@@ -105,10 +105,10 @@ public class Scheduler {
     private static long DELAY_FOR_55_MINS = 44 * 60 * 1000; //5000; //
     private static long DELAY_FOR_60_MINS = 60 * 60 * 1000; //10000; //
     private static Calendar endOf7daysDate;
-//
-//    private static long minTimeBtnRecordings = 1 * 60 * 1000; //minimum time between recordings is 20 mins
-//    private static long DELAY_FOR_55_MINS = 5 * 60 * 1000; //5000; //
-//    private static long DELAY_FOR_60_MINS = 10 * 60 * 1000; //10000; //
+
+//    private static long minTimeBtnRecordings = 4 * 60 * 1000; //minimum time between recordings is 20 mins
+//    private static long DELAY_FOR_55_MINS = 2 * 60 * 1000; //5000; //
+//    private static long DELAY_FOR_60_MINS = 5 * 60 * 1000; //10000; //
 
     //Ensures it is a singleton class
     public static Scheduler getInstance(Context contxt) {
@@ -632,7 +632,7 @@ public class Scheduler {
                 ble.reStartBleCallback();
             }
 
-            return diff;
+            return (minTimeBtnRecordings - diff); //return remaining time to try to connect ;
         }
     }
 
@@ -648,6 +648,7 @@ public class Scheduler {
         Runnable timerRunnable = new Runnable() {
             public void run() {
                 if(ble != null) {
+                    shouldConnect = true;
                     ble.startBleCallback();
                 }
 

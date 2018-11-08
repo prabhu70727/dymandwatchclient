@@ -37,6 +37,7 @@ import static ch.ethz.dymand.Config.surveyAlert1Date;
 import static ch.ethz.dymand.Config.surveyAlert2;
 import static ch.ethz.dymand.Config.surveyAlert2Date;
 import static ch.ethz.dymand.Config.surveyTriggerDate;
+import static ch.ethz.dymand.Config.surveyTriggerNum;
 
 public class DataCollection implements Callbacks.DataCollectionCallback{
 
@@ -44,13 +45,14 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
     SensorRecorder mSensorRecorder;
     private  static DataCollection instance = null;
     private static MessageCallback msg;
-    //private static long DELAY_FOR_5_MINS = 5 * 60 * 1000;
+    private static long DELAY_FOR_5_MINS = 5 * 60 * 1000;
     private static long DELAY_FOR_2_MINS = 2 * 60 * 1000;
     private static long DELAY_FOR_3_MINS = 3 * 60 * 1000;
     private static long DELAY_FOR_6_MINS = 6 * 60 * 1000;
     private static long DELAY_FOR_8_MINS = 8 * 60 * 1000;
 
-    private static long DELAY_FOR_5_MINS = 5 * 60  * 1000;
+    //Testing
+    //private static long DELAY_FOR_5_MINS = 1 * 60  * 1000;
 
     private static final String LOG_TAG = "Data Collection";
     private WatchPhoneCommCallback commCallback;
@@ -123,6 +125,7 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                 if (commCallback != null) {
                     commCallback.signalPhone();
 
+                    surveyTriggerNum++;
                     surveyTriggerDate = surveyTriggerDate + getDateNow();
                 }
 
