@@ -110,6 +110,8 @@ public class Scheduler {
 //    private static long DELAY_FOR_55_MINS = 2 * 60 * 1000; //5000; //
 //    private static long DELAY_FOR_60_MINS = 5 * 60 * 1000; //10000; //
 
+//    private static long DELAY_FOR_60_MINS = 1 * 60 * 1000; //10000; //
+
     //Ensures it is a singleton class
     public static Scheduler getInstance(Context contxt) {
         if (instance == null) {
@@ -498,6 +500,15 @@ public class Scheduler {
                 stream.close();
                 errorLogStream.close();
             }
+        }
+
+        //Check if the Files references are null. If they are, then it means the app was restarted
+        //In which case, we need need to create an object reference to the file
+        if (logFile == null || errorLogFile == null){
+            //Create files for logging status of app
+            String dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath();
+            logFile = new File(dirPath, "log_status_" + subjectID + ".csv");
+            errorLogFile = new File(dirPath, "error_logs_" + subjectID + ".csv");
         }
 
         String outputString = createLogStatusString();
