@@ -40,6 +40,7 @@ import static ch.ethz.dymand.Config.hasLogFileBeenCreated;
 import static ch.ethz.dymand.Config.hasSelfReportBeenStarted;
 import static ch.ethz.dymand.Config.hasStartedRecording;
 import static ch.ethz.dymand.Config.hasStudyStarted;
+import static ch.ethz.dymand.Config.isCentral;
 import static ch.ethz.dymand.Config.isDemoComplete;
 import static ch.ethz.dymand.Config.isSelfReportCompleted;
 import static ch.ethz.dymand.Config.last5Mins;
@@ -71,6 +72,7 @@ import static ch.ethz.dymand.Config.surveyTriggerDate;
 import static ch.ethz.dymand.Config.surveyTriggerNum;
 import static ch.ethz.dymand.Config.vadDates;
 import static ch.ethz.dymand.Config.vadNum;
+import static ch.ethz.dymand.Config.bleSSFile;
 import static ch.ethz.dymand.DataCollectionHour.COLLECT_DATA;
 import static ch.ethz.dymand.DataCollectionHour.END;
 import static ch.ethz.dymand.DataCollectionHour.END_OF_7_DAYS;
@@ -97,6 +99,7 @@ public class Scheduler {
 
     private  static Scheduler instance = null; //singleton instance of class
     static Context  context;
+    private static String dirPath;
     private static BleCallback ble;
     private static DataCollectionCallback dataCollection;
     private static MessageCallback msg;
@@ -118,6 +121,7 @@ public class Scheduler {
             instance = new Scheduler();
 
             context = contxt;
+            dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath();
             //startHourlyTimer();
         }
 
@@ -289,14 +293,17 @@ public class Scheduler {
 
 
         if (hasStudyStarted){
-            timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+            //timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+
+            //TODO: remove after testing
+            timerHandler.postDelayed(timerRunnable, 5000);
         }else {
 
             //TODO: remove after testing
-            //timerHandler.postDelayed(timerRunnable, 5000);
+            timerHandler.postDelayed(timerRunnable, 5000);
 
             //TODO: remove after testing
-            timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+            //timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
 
             //timerHandler.postDelayed(timerRunnable, millisUntilNextMondayStart);
         }
@@ -324,7 +331,7 @@ public class Scheduler {
         outputString.append(batteryPercentage);
         outputString.append(",");
 
-        if (Config.isCentral){
+        if (isCentral){
 
             outputString.append(startScanTriggerNum);
             outputString.append(",");
@@ -474,9 +481,9 @@ public class Scheduler {
         if (!logStatusFileCreated) {
 
             //Create files for logging status of app
-            String dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath();
             logFile = new File(dirPath, "log_status_" + subjectID + ".csv");
             errorLogFile = new File(dirPath, "error_logs_" + subjectID + ".csv");
+            bleSSFile = new File(dirPath, "ble_signal_strength_log.csv");
             logStatusFileCreated = true;
 
             //Record that the files have been created and put in storage
@@ -488,17 +495,33 @@ public class Scheduler {
             //Log Subject id and header
             FileOutputStream stream = new FileOutputStream(logFile);
             FileOutputStream errorLogStream = new FileOutputStream(errorLogFile);
+            FileOutputStream bleSSFileStream = null;
+            if (isCentral){
+                bleSSFileStream = new FileOutputStream(bleSSFile);
+            }
+
 
             String header = Config.createLogHeader();
             String log = "Subject ID: " + subjectID + "\n" + header + "\n";
             String errorLogHeader = "Subject ID: " + subjectID + "\n";
+            String bleLogHeader = "Subject ID: " + subjectID + "\n" + "Date,Signal Strength" + "\n";
 
             try {
                 stream.write(log.getBytes());
                 errorLogStream.write(errorLogHeader.getBytes());
+
+                if (isCentral){
+                    bleSSFileStream.write(bleLogHeader.getBytes());
+                }
+
             } finally {
                 stream.close();
                 errorLogStream.close();
+
+                if (isCentral){
+                    bleSSFileStream.close();
+                }
+
             }
         }
 
@@ -506,11 +529,15 @@ public class Scheduler {
         //In which case, we need need to create an object reference to the file
         if (logFile == null || errorLogFile == null){
             //Create files for logging status of app
-            String dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath();
             logFile = new File(dirPath, "log_status_" + subjectID + ".csv");
             errorLogFile = new File(dirPath, "error_logs_" + subjectID + ".csv");
         }
 
+        if (isCentral && (bleSSFile == null)){
+            bleSSFile = new File(dirPath, "ble_signal_strength_log.csv");
+        }
+
+        //Get data to log
         String outputString = createLogStatusString();
 
         //Write status info to file

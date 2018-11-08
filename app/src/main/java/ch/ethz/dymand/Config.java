@@ -103,8 +103,6 @@ public class Config {
 
     //Bluetooth couple
     public static boolean shouldConnect = false;
-    public static File bleSSFile = new File("Bluetooth");
-
 
     //For testing
     public static boolean SHOULD_SKIP_SET_UP = false;
@@ -119,8 +117,10 @@ public class Config {
     public static boolean hasVoiceSampleBeenCollected = false;
 
     //Log Status
+
     public static String errorLogs = "";
     public static String subjectID;
+    public static File bleSSFile = null;
     public static File logFile = null;
     public static File errorLogFile = null;
     public static boolean logStatusFileCreated = false;

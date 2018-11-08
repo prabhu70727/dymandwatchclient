@@ -24,6 +24,7 @@ import java.util.Map;
 import ch.ethz.dymand.Config;
 
 import static ch.ethz.dymand.Config.SERVICE_UUID;
+import static ch.ethz.dymand.Config.bleSSFile;
 import static ch.ethz.dymand.Config.closeEnoughDates;
 import static ch.ethz.dymand.Config.closeEnoughNum;
 import static ch.ethz.dymand.Config.errorLogs;
@@ -43,7 +44,6 @@ public class BluetoothCentralScan {
     private Map<String, Pair<BluetoothDevice, Integer>> mScanResults;
     private BleScanCallback mScanCallback;
     private BluetoothLeScanner mBluetoothLeScanner;
-    private File bleSSFile = null;
     private FileOutputStream bleSSFileStream;
     private CentralScanInterface mCentralScanListerner;
 
@@ -82,11 +82,17 @@ public class BluetoothCentralScan {
             scanStartDates = scanStartDates + Config.getDateNow();
 
             mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
-            bleSSFile = new File("", "Bluetooth_signal_strength_log");
-            if(!bleSSFile.exists()){
-                bleSSFile.createNewFile();
-            }
-            bleSSFileStream = new FileOutputStream(bleSSFile);
+
+//            Log.i(LOG_TAG, "About to create BLE Log file" );
+//            String dirPath = mContext.getApplicationContext().getFilesDir().getAbsolutePath();
+//            bleSSFile = new File(dirPath, "Bluetooth_signal_strength_log");
+//
+//            if(!bleSSFile.exists()){
+//                bleSSFile.createNewFile();
+//            }
+
+//            Log.i(LOG_TAG, "BLE Log File created: " + bleSSFile.getAbsolutePath());
+            bleSSFileStream = new FileOutputStream(bleSSFile, true);
 
 
         }
@@ -153,7 +159,7 @@ public class BluetoothCentralScan {
 
             Log.i(LOG_TAG, "Signal strength is " +  rssi);
             String toWrite = System.currentTimeMillis()+","+rssi+"\n";
-            //bleSSFileStream.write(toWrite.getBytes());
+            bleSSFileStream.write(toWrite.getBytes());
 
             if(Config.shouldConnect){
                 if(rssi >= Config.threshold) {
