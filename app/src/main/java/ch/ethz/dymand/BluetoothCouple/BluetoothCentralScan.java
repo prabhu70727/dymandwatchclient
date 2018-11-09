@@ -111,7 +111,7 @@ public class BluetoothCentralScan {
         mBluetoothManager = null;
         mScanning = false;
         mScanResults = null;
-        bleSSFile = null;
+        //bleSSFile = null;
     }
 
     private class BleScanCallback extends ScanCallback {
@@ -158,7 +158,7 @@ public class BluetoothCentralScan {
             int rssi = result.getRssi();
 
             Log.i(LOG_TAG, "Signal strength is " +  rssi);
-            String toWrite = System.currentTimeMillis()+","+rssi+"\n";
+            String toWrite = getDateNow() + "," + System.currentTimeMillis()+","+rssi+"\n";
             bleSSFileStream.write(toWrite.getBytes());
 
             if(Config.shouldConnect){

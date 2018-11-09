@@ -122,6 +122,10 @@ public class Scheduler {
 
             context = contxt;
             dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath();
+
+            Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(context));
+
+
             //startHourlyTimer();
         }
 
@@ -273,6 +277,9 @@ public class Scheduler {
                     e.printStackTrace();
                 }
 
+
+
+
                 try {
                     runEachHourly();
                 } catch (FileNotFoundException e) {
@@ -287,6 +294,9 @@ public class Scheduler {
 //                }
 
                 timerHandler.postDelayed(this, DELAY_FOR_60_MINS);
+
+                //Test
+                //throw new NullPointerException();
             }
         };
 
