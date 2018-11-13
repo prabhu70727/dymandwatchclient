@@ -30,4 +30,10 @@
     <string name="voice_sample_msg">Read text and press START to record and STOP when done</string>
     <string name="start_msg">start</string>
     <string name="stop_msg">stop</string>
+    <string name="title_activity_getting_configuration">GettingConfigurationActivity</string>
+    <string name="Configuration_get_message">Please press the send button in the phone before pressing the receive button.</string>
+    <string name="receive_button">Receive</string>
+    <string name="title_activity_config_received">ConfigReceivedActivity</string>
+    <string name="ConfigurationReceivedButton">Configuration successfully received. Press Weiter for next step.</string>
+    <string name="nextGerman">Weiter</string>
 </resources>

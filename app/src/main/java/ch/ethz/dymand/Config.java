@@ -73,6 +73,7 @@ public class Config {
     public static int endHourWeekend = 22;
     public static boolean isSelfReportCompleted = false;
     public static boolean hasSelfReportBeenStarted = false;
+    public static boolean configReceived = false;
 
     //Bluetooth couple
     public static boolean shouldConnect = false;

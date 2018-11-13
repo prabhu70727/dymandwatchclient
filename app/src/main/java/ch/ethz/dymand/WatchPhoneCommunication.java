@@ -26,38 +26,35 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
 
     private static Context context;
 
+    //------Receiving signals-START----------
+
+    // self report has started signal (key not required as message content not relevant)
+    private static final String SELF_REPORT_STARTED_PATH = "/hasStartedSelfReport";
+
+    // self report has-completed signal (key not required as message content not relevant)
+    private static final String SELF_REPORT_COMPLETED_PATH = "/hasCompletedSelfReport";
+
+    // get config signal
+    private static final String GET_CONFIG_PATH = "/getconfig";
+    private static final String GET_CONFIG_KEY = "dymand.get.config.key";
+
+    //------Receiving signals-END----------
+
+
+    //------Sending signals-START----------
+
     // user intent signal recording done
     private static final String RECORDING_DONE_PATH = "/recording_done";
     private static final String RECORDING_DONE_KEY = "ch.ethz.dymand.recording_done";
     private static final String RECORDING_DONE_MESSAGE = "RD";
-
-    // self report has started signal
-    private static final String SELF_REPORT_STARTED_PATH = "/hasStartedSelfReport";
-    private static final String SELF_REPORT_STARTED_KEY = "ch.ethz.dymand.hasStartedSelfReport";
-    private static final String SELF_REPORT_STARTED_MESSAGE = "SelfReportStarted";
-
-    // self report has-completed signal
-    private static final String SELF_REPORT_COMPLETED_PATH = "/hasCompletedSelfReport";
-    private static final String SELF_REPORT_COMPLETED_KEY = "ch.ethz.dymand.hasCompletedSelfReport";
-    private static final String SELF_REPORT_COMPLETED_MESSAGE = "SelfReportCompleted";
 
     // self report has-completed ACK signal
     private static final String SELF_REPORT_COMPLETED_ACK_PATH = "/hasCompletedSelfReportACK";
     private static final String SELF_REPORT_COMPLETED_ACK_KEY = "ch.ethz.dymand.hasCompletedSelfReportACK";
     private static final String SELF_REPORT_COMPLETED_ACK_MESSAGE = "SelfReportCompletedACK";
 
-    private static final String GET_CONFIG = "/getconfig";
-    private static final String GET_CONFIG_KEY = "DYMAND_GET_CONFIG_KEY";
-    private static final String GET_CONFIG_ACK = "DYMAND_GET_CONFIG_ACK";
-    private static boolean configAckSent = false;
+    //------Sending signals-END----------
 
-    private static final String INTERVENE_KEY = "com.example.key.intervention";
-    private static final String INTERVENTION = "/intervention";
-    private static final String START_INTERVENTION_MESSAGE = "start_intervention";
-    private static final String INTERVENTION_ACK = "intervention_ack";
-    private static final String SEND_INTENT_MESSAGE = "send_intent";
-    private static final String INTENT_ACK = "intent_ack";
-    public static boolean intentSent = false;
     private static final String LOG_TAG = "Logs: WatchPhoneCommunication";
     private static WatchPhoneCommunication instance = null;
 
@@ -78,22 +75,6 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
         }
         context = contxt;
         return instance;
-    }
-
-
-    // TODO: what if connection failed. Two while loops not good
-    private void sendRecordingDoneIntention() {
-        long end_time_intention = WatchMobileInterface.curTime() + Config.INTENT_EXPIRY;
-        while (WatchMobileInterface.curTime() < end_time_intention){
-            LocalTimer.blockingLoop(2000);
-            if(!intentSent) {
-                sendIntentMessage(SEND_INTENT_MESSAGE);
-            }
-            else {
-                intentSent = false;
-                break;
-            }
-        }
     }
 
 
@@ -118,19 +99,8 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
     }
 
 
-    private void sendIntentMessage(String message) {
-        PutDataMapRequest putDataMapReq = PutDataMapRequest.create(INTERVENTION);
-        putDataMapReq.getDataMap().putString(INTERVENE_KEY, message + (System.currentTimeMillis()%100000));
-        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
-        putDataReq.setUrgent(); // this is important
-        Wearable.getDataClient(context).putDataItem(putDataReq).addOnSuccessListener(new OnSuccessListener<DataItem>() {
-            @Override
-            public void onSuccess(DataItem dataItem) {
-                Log.i("Data Collection", "Sending intent was successful: " + dataItem);
-            }
-        });
-    }
-
+    // The most important function of this class, when there is any change in the buffer that
+    // connects watch and the phone.
     @Override
     public void onDataChanged(@NonNull DataEventBuffer dataEventBuffer) {
         Log.i(LOG_TAG, "onDataChanged called in watch.");
@@ -139,10 +109,10 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
                 // DataItem changed
                 Log.i(LOG_TAG, "onDataChanged data event - changed.");
                 DataItem item = event.getDataItem();
-                if (item.getUri().getPath().compareTo(GET_CONFIG) == 0) {
+                if (item.getUri().getPath().compareTo(GET_CONFIG_PATH) == 0) {
                     DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
-                    sendConfigurationReceivedACK();
                     setConfig(dataMap.getString(GET_CONFIG_KEY));
+                    Wearable.getDataClient(context).deleteDataItems(item.getUri());
                 }
                 if (item.getUri().getPath().compareTo(SELF_REPORT_STARTED_PATH) == 0) {
                     DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
@@ -177,27 +147,19 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
         Config.isSelfReportCompleted = true;
     }
 
-    private void sendConfigurationReceivedACK() {
-        Log.i(LOG_TAG, "Sending ACK for configuration...");
-        configAckSent = false;
-        while (!configAckSent) {
-            PutDataMapRequest putDataMapReq = PutDataMapRequest.create(GET_CONFIG);
-            putDataMapReq.getDataMap().putString(GET_CONFIG_KEY, GET_CONFIG_ACK);
-            PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
-            putDataReq.isUrgent();
-            Wearable.getDataClient(context).putDataItem(putDataReq).addOnSuccessListener(new OnSuccessListener<DataItem>() {
-                @Override
-                public void onSuccess(DataItem dataItem) {
-                    configAckSent = true;
-                    Log.i(LOG_TAG, "Sending ACK for configuration was successful: " + dataItem);
-                }
-            });
-        }
-    }
 
-    // todo break and set the configuration to variables.
+    // break and set the configuration to variables.
     private void setConfig(String configuration) {
         Log.i(LOG_TAG, "Configuration is " + configuration);
+        String [] tokens = configuration.split(" ");
+        String [] configTokens = tokens[1].split("-");
+        Config.morningStartHourWeekday = Integer.parseInt(configTokens[0]);
+        Config.morningEndHourWeekday = Integer.parseInt(configTokens[1]);
+        Config.eveningStartHourWeekday = Integer.parseInt(configTokens[2]);
+        Config.eveningEndHourWeekday = Integer.parseInt(configTokens[3]);
+        Config.startHourWeekend = Integer.parseInt(configTokens[4]);
+        Config.endHourWeekend = Integer.parseInt(configTokens[5]);
+        Config.configReceived = true;
     }
 
 

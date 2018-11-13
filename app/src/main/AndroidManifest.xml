@@ -60,7 +60,8 @@
             android:theme="@style/Theme.AppCompat" />
         <activity
             android:name=".Setup.GetConfigActivity"
-            android:label="@string/title_activity_get_config">
+            android:label="@string/title_activity_get_config"
+            android:theme="@style/Theme.Wearable.Modal">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -79,6 +80,16 @@
         <activity
             android:name=".Setup.GetVoiceSampleActivity"
             android:label="@string/title_activity_get_voice_sample">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".Setup.ConfigReceivedActivity"
+            android:label="@string/title_activity_config_received"
+            android:theme="@style/Theme.Wearable.Modal">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
