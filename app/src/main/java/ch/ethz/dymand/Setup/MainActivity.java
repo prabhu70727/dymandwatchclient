@@ -7,9 +7,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -21,6 +23,8 @@ import android.widget.Toast;
 
 import ch.ethz.dymand.FGService;
 import ch.ethz.dymand.R;
+
+import static ch.ethz.dymand.Config.isSetupComplete;
 
 public class MainActivity extends WearableActivity {
     private static final int REQUEST_ENABLE_BT = 1;
@@ -86,10 +90,24 @@ public class MainActivity extends WearableActivity {
         }
 
 
-        //TODO: remove
-        //startService();
+
+        //Check if set up is complete
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        isSetupComplete = sharedPref.getBoolean("isSetupComplete", false);
+
+        Log.i("LOG_TAG", "Setup Complete: " + isSetupComplete);
+
+        if (isSetupComplete){
+        //if (true){
+            startSetupCompleteActivity();
+        }
+        //
     }
 
+    private void startSetupCompleteActivity(){
+        Intent intent = new Intent(this, SetupCompleteActivity.class);
+        startActivity(intent);
+    }
     //TODO: Move to terminal activity in the set up process
     private void startService(){
         if(isMyServiceRunning(FGService.class)) {

@@ -2,9 +2,11 @@ package ch.ethz.dymand;
 
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.File;
@@ -34,8 +36,12 @@ import static ch.ethz.dymand.Config.errorLogFile;
 import static ch.ethz.dymand.Config.errorLogs;
 import static ch.ethz.dymand.Config.eveningEndHourWeekday;
 import static ch.ethz.dymand.Config.eveningStartHourWeekday;
+import static ch.ethz.dymand.Config.hasLogFileBeenCreated;
 import static ch.ethz.dymand.Config.hasSelfReportBeenStarted;
 import static ch.ethz.dymand.Config.hasStartedRecording;
+import static ch.ethz.dymand.Config.hasStudyStarted;
+import static ch.ethz.dymand.Config.isCentral;
+import static ch.ethz.dymand.Config.isDemoComplete;
 import static ch.ethz.dymand.Config.isSelfReportCompleted;
 import static ch.ethz.dymand.Config.last5Mins;
 import static ch.ethz.dymand.Config.lastRecordedTime;
@@ -66,6 +72,7 @@ import static ch.ethz.dymand.Config.surveyTriggerDate;
 import static ch.ethz.dymand.Config.surveyTriggerNum;
 import static ch.ethz.dymand.Config.vadDates;
 import static ch.ethz.dymand.Config.vadNum;
+import static ch.ethz.dymand.Config.bleSSFile;
 import static ch.ethz.dymand.DataCollectionHour.COLLECT_DATA;
 import static ch.ethz.dymand.DataCollectionHour.END;
 import static ch.ethz.dymand.DataCollectionHour.END_OF_7_DAYS;
@@ -92,6 +99,7 @@ public class Scheduler {
 
     private  static Scheduler instance = null; //singleton instance of class
     static Context  context;
+    private static String dirPath;
     private static BleCallback ble;
     private static DataCollectionCallback dataCollection;
     private static MessageCallback msg;
@@ -100,10 +108,12 @@ public class Scheduler {
     private static long DELAY_FOR_55_MINS = 44 * 60 * 1000; //5000; //
     private static long DELAY_FOR_60_MINS = 60 * 60 * 1000; //10000; //
     private static Calendar endOf7daysDate;
-//
-//    private static long minTimeBtnRecordings = 1 * 60 * 1000; //minimum time between recordings is 20 mins
-//    private static long DELAY_FOR_55_MINS = 5 * 60 * 1000; //5000; //
-//    private static long DELAY_FOR_60_MINS = 10 * 60 * 1000; //10000; //
+
+//    private static long minTimeBtnRecordings = 4 * 60 * 1000; //minimum time between recordings is 20 mins
+//    private static long DELAY_FOR_55_MINS = 2 * 60 * 1000; //5000; //
+//    private static long DELAY_FOR_60_MINS = 5 * 60 * 1000; //10000; //
+
+//    private static long DELAY_FOR_60_MINS = 1 * 60 * 1000; //10000; //
 
     //Ensures it is a singleton class
     public static Scheduler getInstance(Context contxt) {
@@ -111,6 +121,11 @@ public class Scheduler {
             instance = new Scheduler();
 
             context = contxt;
+            dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath();
+
+            Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(context));
+
+
             //startHourlyTimer();
         }
 
@@ -137,6 +152,13 @@ public class Scheduler {
         Runnable timerRunnable = new Runnable() {
             @Override
             public void run() {
+
+                //Record that demo is complete
+                //TODO: proxy for demo complete. Replace with actual check
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putBoolean("isDemoComplete", isDemoComplete);
+                editor.apply();
 
                 if (DEBUG_MODE == true) {
                     //TODO: Remove vibrator test in final version
@@ -224,6 +246,17 @@ public class Scheduler {
             @Override
             public void run() {
 
+                //The first time the hourly timer get's triggered, note that the study has started
+                if (!hasStudyStarted){
+                    hasStudyStarted = true;
+
+                    //Store in persistent data storage
+                    SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+                    SharedPreferences.Editor editor = sharedPref.edit();
+                    editor.putBoolean("hasStudyStarted", hasStudyStarted);
+                    editor.apply();
+                }
+
                 if (DEBUG_MODE == true) {
                     //TODO: Remove vibrator test in final version
                     Vibrator v = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
@@ -244,6 +277,9 @@ public class Scheduler {
                     e.printStackTrace();
                 }
 
+
+
+
                 try {
                     runEachHourly();
                 } catch (FileNotFoundException e) {
@@ -258,12 +294,30 @@ public class Scheduler {
 //                }
 
                 timerHandler.postDelayed(this, DELAY_FOR_60_MINS);
+
+                //Test
+                //throw new NullPointerException();
             }
         };
 
-        //timerHandler.postDelayed(timerRunnable, 5000);
-        timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
-        //timerHandler.postDelayed(timerRunnable, millisUntilNextMondayStart);
+
+
+        if (hasStudyStarted){
+            //timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+
+            //TODO: remove after testing
+            timerHandler.postDelayed(timerRunnable, 5000);
+        }else {
+
+            //TODO: remove after testing
+            timerHandler.postDelayed(timerRunnable, 5000);
+
+            //TODO: remove after testing
+            //timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+
+            //timerHandler.postDelayed(timerRunnable, millisUntilNextMondayStart);
+        }
+
     }
 
     /**
@@ -287,7 +341,7 @@ public class Scheduler {
         outputString.append(batteryPercentage);
         outputString.append(",");
 
-        if (Config.isCentral){
+        if (isCentral){
 
             outputString.append(startScanTriggerNum);
             outputString.append(",");
@@ -431,30 +485,69 @@ public class Scheduler {
      * Logs status of app over the past 1 hour to file
      */
     public static void logStatus() throws IOException {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        logStatusFileCreated = sharedPref.getBoolean("hasLogFileBeenCreated", false);
 
         if (!logStatusFileCreated) {
-            String dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath();
+
+            //Create files for logging status of app
             logFile = new File(dirPath, "log_status_" + subjectID + ".csv");
             errorLogFile = new File(dirPath, "error_logs_" + subjectID + ".csv");
+            bleSSFile = new File(dirPath, "ble_signal_strength_log.csv");
             logStatusFileCreated = true;
+
+            //Record that the files have been created and put in storage
+            hasLogFileBeenCreated = true;
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putBoolean("hasLogFileBeenCreated", hasLogFileBeenCreated);
+            editor.apply();
 
             //Log Subject id and header
             FileOutputStream stream = new FileOutputStream(logFile);
             FileOutputStream errorLogStream = new FileOutputStream(errorLogFile);
+            FileOutputStream bleSSFileStream = null;
+            if (isCentral){
+                bleSSFileStream = new FileOutputStream(bleSSFile);
+            }
+
 
             String header = Config.createLogHeader();
             String log = "Subject ID: " + subjectID + "\n" + header + "\n";
             String errorLogHeader = "Subject ID: " + subjectID + "\n";
+            String bleLogHeader = "Subject ID: " + subjectID + "\n" + "Date,Signal Strength" + "\n";
 
             try {
                 stream.write(log.getBytes());
                 errorLogStream.write(errorLogHeader.getBytes());
+
+                if (isCentral){
+                    bleSSFileStream.write(bleLogHeader.getBytes());
+                }
+
             } finally {
                 stream.close();
                 errorLogStream.close();
+
+                if (isCentral){
+                    bleSSFileStream.close();
+                }
+
             }
         }
 
+        //Check if the Files references are null. If they are, then it means the app was restarted
+        //In which case, we need need to create an object reference to the file
+        if (logFile == null || errorLogFile == null){
+            //Create files for logging status of app
+            logFile = new File(dirPath, "log_status_" + subjectID + ".csv");
+            errorLogFile = new File(dirPath, "error_logs_" + subjectID + ".csv");
+        }
+
+        if (isCentral && (bleSSFile == null)){
+            bleSSFile = new File(dirPath, "ble_signal_strength_log.csv");
+        }
+
+        //Get data to log
         String outputString = createLogStatusString();
 
         //Write status info to file
@@ -587,7 +680,7 @@ public class Scheduler {
                 ble.reStartBleCallback();
             }
 
-            return diff;
+            return (minTimeBtnRecordings - diff); //return remaining time to try to connect ;
         }
     }
 
@@ -603,6 +696,7 @@ public class Scheduler {
         Runnable timerRunnable = new Runnable() {
             public void run() {
                 if(ble != null) {
+                    shouldConnect = true;
                     ble.startBleCallback();
                 }
 

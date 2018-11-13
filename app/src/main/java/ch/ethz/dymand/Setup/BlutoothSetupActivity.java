@@ -3,8 +3,10 @@ package ch.ethz.dymand.Setup;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 import android.view.View;
@@ -16,6 +18,7 @@ import ch.ethz.dymand.FGService;
 import ch.ethz.dymand.R;
 import ch.ethz.dymand.Setup.SetupUUID;
 
+import static ch.ethz.dymand.Config.isCentral;
 import static ch.ethz.dymand.Config.subjectID;
 
 
@@ -82,6 +85,13 @@ public class BlutoothSetupActivity extends WearableActivity {
         Config.isCentral = true;
         subjectID = "P";
 
+
+        //Save that this device is the central device
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean("isCentral", isCentral);
+        editor.apply();
+
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 //            startForegroundService(mService);
 //        }
@@ -120,6 +130,12 @@ public class BlutoothSetupActivity extends WearableActivity {
 
         Config.isCentral = false;
         subjectID = "Z";
+
+        //Save that this device is the peripheral device
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean("isCentral", isCentral);
+        editor.apply();
 
         //Bundle b = new Bundle();
         //b.putParcelable("data",mbluetoothManager );

@@ -22,6 +22,7 @@ import static ch.ethz.dymand.Config.closeEnoughDates;
 import static ch.ethz.dymand.Config.collectDataNum;
 import static ch.ethz.dymand.Config.connectedDates;
 import static ch.ethz.dymand.Config.connectedNum;
+import static ch.ethz.dymand.Config.errorLogs;
 import static ch.ethz.dymand.Config.getDateNow;
 import static ch.ethz.dymand.Config.hasStartedRecording;
 import static ch.ethz.dymand.Config.closeEnoughNum;
@@ -172,7 +173,11 @@ public class BluetoothController implements
     // todo check why mBluetoothManager.openGattServer() returns null
     @Override
     public void startBleCallback() {
-        if ((!(Config.shouldConnect == true))) throw new AssertionError();
+        if ((!(Config.shouldConnect == true))) {
+            Log.e("Logs", "BStart BLE failed");
+            errorLogs =  errorLogs + LOG_TAG + ": Start BLE failed "   + " \n";
+            throw new AssertionError();
+        }
 
         if (Config.isCentral) {
             if (mBluetoothCentralScan != null) {

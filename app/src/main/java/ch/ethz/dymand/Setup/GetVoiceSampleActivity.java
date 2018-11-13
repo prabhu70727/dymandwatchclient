@@ -1,9 +1,11 @@
 package ch.ethz.dymand.Setup;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 import android.view.View;
@@ -18,6 +20,9 @@ import ch.ethz.dymand.Audio.BackgroundAudioRecorder;
 import ch.ethz.dymand.R;
 
 import static ch.ethz.dymand.Config.DEBUG_MODE;
+import static ch.ethz.dymand.Config.SERVICE_STRING;
+import static ch.ethz.dymand.Config.hasVoiceSampleBeenCollected;
+import static ch.ethz.dymand.Config.subjectID;
 
 public class GetVoiceSampleActivity extends WearableActivity {
 
@@ -86,6 +91,12 @@ public class GetVoiceSampleActivity extends WearableActivity {
     }
 
     public void completeRecording(){
+        //Save that recording has been done
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean("hasVoiceSampleBeenCollected", hasVoiceSampleBeenCollected);
+        editor.apply();
+
         Intent intent = new Intent(this, SetupCompleteActivity.class);
         startActivity(intent);
     }

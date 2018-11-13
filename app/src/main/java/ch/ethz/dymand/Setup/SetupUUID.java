@@ -1,9 +1,11 @@
 package ch.ethz.dymand.Setup;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.TextInputLayout;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
@@ -16,8 +18,11 @@ import ch.ethz.dymand.FGService;
 import ch.ethz.dymand.R;
 
 import static ch.ethz.dymand.Config.CHARACTERISTIC_STRING_BUFF;
+import static ch.ethz.dymand.Config.SERVICE_STRING;
 import static ch.ethz.dymand.Config.SERVICE_STRING_BUFF;
+import static ch.ethz.dymand.Config.isCentral;
 import static ch.ethz.dymand.Config.subjectID;
+import static ch.ethz.dymand.Config.updateUUID;
 
 
 public class SetupUUID extends WearableActivity {
@@ -59,6 +64,15 @@ public class SetupUUID extends WearableActivity {
         //Create new UUID strings
         SERVICE_STRING_BUFF = SERVICE_STRING_BUFF.delete(len-enteredCodeLen,len).append(str);
         //CHARACTERISTIC_STRING_BUFF = CHARACTERISTIC_STRING_BUFF.delete(len-enteredCodeLen,len).append(str);
+
+        updateUUID();
+
+        //Save the subject ID
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("subjectID", subjectID);
+        editor.putString("SERVICE_STRING", SERVICE_STRING);
+        editor.apply();
 
         Log.d("Service String", ": "+SERVICE_STRING_BUFF);
 

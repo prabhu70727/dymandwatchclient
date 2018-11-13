@@ -37,6 +37,7 @@ import static ch.ethz.dymand.Config.surveyAlert1Date;
 import static ch.ethz.dymand.Config.surveyAlert2;
 import static ch.ethz.dymand.Config.surveyAlert2Date;
 import static ch.ethz.dymand.Config.surveyTriggerDate;
+import static ch.ethz.dymand.Config.surveyTriggerNum;
 
 public class DataCollection implements Callbacks.DataCollectionCallback{
 
@@ -50,6 +51,7 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
     private static long DELAY_FOR_6_MINS = 6 * 60 * 1000;
     private static long DELAY_FOR_8_MINS = 8 * 60 * 1000;
 
+    //Testing
     //private static long DELAY_FOR_5_MINS = 1 * 60  * 1000;
 
     private static final String LOG_TAG = "Data Collection";
@@ -69,7 +71,7 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         msg = msgInput;
     }
 
-    public void subscribeMessageCallback(WatchPhoneCommCallback commCallbackInput){
+    public void subscribePhoneCommCallback(WatchPhoneCommCallback commCallbackInput){
         commCallback = commCallbackInput;
     }
 
@@ -123,14 +125,15 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                 if (commCallback != null) {
                     commCallback.signalPhone();
 
+                    surveyTriggerNum++;
                     surveyTriggerDate = surveyTriggerDate + getDateNow();
                 }
 
 
                 //Testing. TODO: Remove
-                hasStartedRecording = false;
-                hasSelfReportBeenStarted = true;
-                isSelfReportCompleted = true;
+                //--- hasStartedRecording = false;
+                //hasSelfReportBeenStarted = true;
+                //isSelfReportCompleted = true;
 
                 //Start 2 minute timer to check the survey has been completed
                 startFirst2minTimer();

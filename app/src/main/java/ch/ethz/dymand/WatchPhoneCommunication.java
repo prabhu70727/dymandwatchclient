@@ -1,6 +1,7 @@
 package ch.ethz.dymand;
 
 import android.content.Context;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -18,6 +19,9 @@ import com.google.android.gms.wearable.Wearable;
 import OldCode.LocalTimer;
 import OldCode.WatchMobileInterface;
 
+import static android.content.Context.VIBRATOR_SERVICE;
+import static ch.ethz.dymand.Callbacks.MessageCallback;
+import static ch.ethz.dymand.Config.DEBUG_MODE;
 
 // Initialize and get instance: mWatchPhoneCommunication = WatchPhoneCommunication.getInstance(this);
 // Callbacks.WatchPhoneCommCallback.signalPhone is the callback
@@ -57,6 +61,7 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
 
     private static final String LOG_TAG = "Logs: WatchPhoneCommunication";
     private static WatchPhoneCommunication instance = null;
+    private static MessageCallback msg;
 
     public static WatchPhoneCommunication getInstance(Context contxt){
         Log.i(LOG_TAG, "getInstance is called...");
@@ -77,6 +82,9 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
         return instance;
     }
 
+    public void subscribeMessageCallback(MessageCallback msgInput){
+        msg = msgInput;
+    }
 
     private void sendIntention(String path, String key, final String message) {
         PutDataMapRequest putDataMapReq = PutDataMapRequest.create(path);
@@ -139,12 +147,27 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
     private void setHasStartedSelfReport() {
         Log.i(LOG_TAG, "Setting variable hasStartedSelfReport...");
         Config.hasSelfReportBeenStarted = true;
+
+
+        if (DEBUG_MODE == true){
+            msg.triggerMsg("Self Report Started");
+            Vibrator v = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
+            v.vibrate(500); // Vibrate for 500 milliseconds
+        }
+
     }
 
     private void setHasCompletedSelfReport() {
         Log.i(LOG_TAG, "Setting variable hasCompletedSelfReport...");
         sendIntention(SELF_REPORT_COMPLETED_ACK_PATH, SELF_REPORT_COMPLETED_ACK_KEY, SELF_REPORT_COMPLETED_ACK_MESSAGE);
         Config.isSelfReportCompleted = true;
+
+
+        if (DEBUG_MODE == true){
+            msg.triggerMsg("Self Report Completed");
+            Vibrator v = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
+            v.vibrate(500); // Vibrate for 500 milliseconds
+        }
     }
 
 
