@@ -70,7 +70,7 @@ public class BlutoothSetupActivity extends WearableActivity {
 
 
     public void startServiceOnClickedCentral(View view) {
-        mbluetoothCentral.stop();
+        //mbluetoothCentral.stop();
         Log.i(LOG_TAG, "Foreground services count: " + getFGServiceCount());
         Log.i(LOG_TAG, "Checking whether the required service exists..." );
         if(isMyServiceRunning(FGService.class)) {
@@ -105,7 +105,7 @@ public class BlutoothSetupActivity extends WearableActivity {
 
 
     public void killServiceOnClicked(View view) {
-        mbluetoothCentral.stop();
+        //mbluetoothCentral.stop();
         Log.i(LOG_TAG, "Foreground services count: " + getFGServiceCount());
         Log.i(LOG_TAG, "Checking whether the required service exists..." );
         if(!isMyServiceRunning(FGService.class)) {
@@ -117,7 +117,7 @@ public class BlutoothSetupActivity extends WearableActivity {
     }
 
     public void startServiceOnClickedPeripheral(View view) {
-        mbluetoothCentral.stop();
+        //mbluetoothCentral.stop();
         Log.i(LOG_TAG, "Foreground services count: " + getFGServiceCount());
         Log.i(LOG_TAG, "Checking whether the required service exists..." );
         if(isMyServiceRunning(FGService.class)) {
