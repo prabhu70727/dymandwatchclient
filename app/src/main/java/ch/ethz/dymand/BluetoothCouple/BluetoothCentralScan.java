@@ -75,7 +75,7 @@ public class BluetoothCentralScan {
                     .build();
 
             //Asynchronous return? need to check
-            Log.i(LOG_TAG, "Bluetooth started Scanning");
+            Log.i(LOG_TAG, "Bluetooth started Scanning with Service UUID:" + SERVICE_UUID);
             mScanning = true;
 
             scanWasStarted = scanWasStarted + mScanning;
@@ -99,6 +99,10 @@ public class BluetoothCentralScan {
     }
 
     public void stopScan() throws IOException {
+        if(!mScanning){
+            Log.i(LOG_TAG, "Bluetooth stopped Scanning already..");
+        }
+
         if (mScanning && mBluetoothAdapter != null && mBluetoothAdapter.isEnabled() && mBluetoothLeScanner != null) {
             Log.i(LOG_TAG, "Bluetooth stopped Scanning");
             mBluetoothLeScanner.stopScan(mScanCallback);
@@ -106,7 +110,7 @@ public class BluetoothCentralScan {
             if (bleSSFileStream != null){
                 bleSSFileStream.close();
             }
-
+            blockingLoop(500); // waiting for 500 ms
         }
         mBluetoothManager = null;
         mScanning = false;
@@ -152,8 +156,8 @@ public class BluetoothCentralScan {
             scanStartDates = scanWasStarted + Config.getDateNow();
         }
 
-        //TODO : Synchronized? test it..
-        synchronized private void addScanResult(ScanResult result) throws IOException {
+
+        private synchronized void addScanResult(ScanResult result) throws IOException {
             BluetoothDevice device = result.getDevice();
             int rssi = result.getRssi();
 
@@ -169,13 +173,23 @@ public class BluetoothCentralScan {
                     closeEnoughDates = closeEnoughDates + " | " + getDateNow();
 
                     Log.i(LOG_TAG, "To connect callback");
-                    mCentralScanListerner.found(device);
                     Config.shouldConnect = false;
+                    stopScan();
+                    mCentralScanListerner.found(device);
                 }
             }
         }
     }
 
+    public void blockingLoop(int recordTime) {
+        Log.i(LOG_TAG, "Waiting for " + recordTime + " milliseconds");
+        long endLoop = curTime() + recordTime;
+        while(curTime()<endLoop);
+    }
+
+    public long curTime(){
+        return System.currentTimeMillis();
+    }
 
     public interface CentralScanInterface {
         void found(BluetoothDevice device);

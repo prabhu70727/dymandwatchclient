@@ -68,7 +68,7 @@ public class BluetoothCentral {
 
 
             ScanFilter scanFilter = new ScanFilter.Builder()
-                    .setServiceUuid(new ParcelUuid(SERVICE_UUID))
+                    .setServiceUuid(new ParcelUuid(UUID.fromString("e81f4267-5403-4646-8429-3d6a2ef85cc2")))
                     .build();
             List<ScanFilter> filters = new ArrayList<>();
             filters.add(scanFilter);
@@ -78,7 +78,7 @@ public class BluetoothCentral {
                     .build();
 
             //Asynchronous return? need to check
-            Log.i(LOG_TAG, "Bluetooth started Scanning");
+            Log.i(LOG_TAG, "Bluetooth started default Scanning");
             mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
             mScanning = true;
             mDeviceFoundConnectionInterrupted = false;

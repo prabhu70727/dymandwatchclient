@@ -222,17 +222,17 @@ public class BluetoothPeripheral {
             mTimeStamp = messageString;
             Log.i(LOG_TAG, "Received message:" + mTimeStamp);
 
+            characteristic.setValue(value);
+            for (BluetoothDevice dev : mDevices) {
+                mGattServer.notifyCharacteristicChanged(dev, characteristic, false);
+            }
+
             //connected with timestamp
             Log.i(LOG_TAG, "Call back to connected");
             try {
                 mPeripheralListener.connected(mTimeStamp);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
-            }
-
-            characteristic.setValue(value);
-            for (BluetoothDevice dev : mDevices) {
-                mGattServer.notifyCharacteristicChanged(dev, characteristic, false);
             }
         }
 
