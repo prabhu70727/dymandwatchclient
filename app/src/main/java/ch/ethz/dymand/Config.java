@@ -7,6 +7,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import ch.ethz.dymand.Sensors.SensorRecorder;
@@ -69,12 +70,25 @@ public class Config {
     public static boolean isCentral = false;
     public static final int SYNC_BUFFER = 5 * (MINUTE/60); //To sync between central and peripheral
     public static final int threshold = -100;
+    private static final int PP_INTERVAL_SENSOR = 65547;
+    private static final int NEW_ACTIVITY_SENSOR = 65549;
+    private static final int HR_PPG_GAIN_SENSOR = 65544;
+    private static final int HR_PPG_SENSOR = 65541;
 
     public static int[] sensorList = new int[]{
             Sensor.TYPE_HEART_RATE,
             Sensor.TYPE_ACCELEROMETER,
             Sensor.TYPE_GYROSCOPE,
             Sensor.TYPE_LIGHT
+//            Sensor.TYPE_HEART_BEAT,
+//            PP_INTERVAL_SENSOR,
+//            NEW_ACTIVITY_SENSOR,
+//            HR_PPG_GAIN_SENSOR,
+//            HR_PPG_SENSOR
+//            Sensor.TYPE_LINEAR_ACCELERATION,
+//            Sensor.TYPE_STEP_COUNTER,
+//            Sensor.TYPE_STEP_DETECTOR,
+//            Sensor.TYPE_SIGNIFICANT_MOTION
     };
 
     public static HashMap<Integer,Integer> sensorPeriods= new HashMap<Integer,Integer>();
@@ -162,6 +176,14 @@ public class Config {
     static SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
     static SimpleDateFormat df2 = new SimpleDateFormat("MM-dd-yyyy HH_mm_ss");
 
+    public static String oldheader = "Date Time, " +
+            "Battery Percentage, noSilenceNum, noSilenceDates,vadNum,vadDates," +
+            "surveyAlert1, surveyAlert1Date, surveyAlert2, surveyAlert2Date, surveyTriggerNum, " +
+            "surveyTriggerDate, dataCollectStartDate, dataCollectEndDate, closeEnoughNum, closeEnoughDates, " +
+            "last5Mins,advertisingStarted, advertisingStartedDates,scanWasStarted, scanStartDates,startScanTriggerNum," +
+            "startScanTriggerDates, startAdvertTriggerNum, startAdvertTriggerDates,connectedNum,connectedDates";
+
+    @NonNull
     public static String getDateNow(){
 
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
@@ -227,13 +249,6 @@ public class Config {
         Log.d(LOG_TAG, "startHourWeekend - " + startHourWeekend);
         Log.d(LOG_TAG, "endHourWeekend - " + endHourWeekend);
     }
-
-    public static String oldheader = "Date Time, " +
-            "Battery Percentage, noSilenceNum, noSilenceDates,vadNum,vadDates," +
-            "surveyAlert1, surveyAlert1Date, surveyAlert2, surveyAlert2Date, surveyTriggerNum, " +
-            "surveyTriggerDate, dataCollectStartDate, dataCollectEndDate, closeEnoughNum, closeEnoughDates, " +
-            "last5Mins,advertisingStarted, advertisingStartedDates,scanWasStarted, scanStartDates,startScanTriggerNum," +
-            "startScanTriggerDates, startAdvertTriggerNum, startAdvertTriggerDates,connectedNum,connectedDates";
 
     public static File getStorageLocation() {
         File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);

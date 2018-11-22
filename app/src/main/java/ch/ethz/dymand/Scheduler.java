@@ -107,12 +107,12 @@ public class Scheduler {
     private static MessageCallback msg;
     private static long DELAY_FOR_1_MIN =  5 * 1000; //10000; //
     private static long minTimeBtnRecordings = 20 * 60 * 1000; //minimum time between recordings is 20 mins
-    //private static long DELAY_FOR_55_MINS = 44 * 60 * 1000; //5000; //
+    private static long DELAY_FOR_55_MINS = 44 * 60 * 1000; //5000; //
     private static long DELAY_FOR_60_MINS = 60 * 60 * 1000; //10000; //
     private static Calendar endOf7daysDate;
 
 //    private static long minTimeBtnRecordings = 4 * 60 * 1000; //minimum time between recordings is 20 mins
-    private static long DELAY_FOR_55_MINS = 1 * 60 * 1000; //5000; //
+//    private static long DELAY_FOR_55_MINS = 1 * 60 * 1000; //5000; //
 //    private static long DELAY_FOR_60_MINS = 5 * 60 * 1000; //10000; //
 
 //    private static long DELAY_FOR_60_MINS = 1 * 60 * 1000; //10000; //
@@ -304,17 +304,17 @@ public class Scheduler {
 
 
         if (hasStudyStarted){
-            //timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+            timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
 
             //TODO: remove after testing
-            timerHandler.postDelayed(timerRunnable, 5000);
+            //timerHandler.postDelayed(timerRunnable, 5000);
         }else {
 
             //TODO: remove after testing
-            timerHandler.postDelayed(timerRunnable, 5000);
+            //timerHandler.postDelayed(timerRunnable, 5000);
 
             //TODO: remove after testing
-            //timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+            timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
 
             //timerHandler.postDelayed(timerRunnable, millisUntilNextMondayStart);
         }

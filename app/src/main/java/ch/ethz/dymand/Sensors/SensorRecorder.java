@@ -133,7 +133,7 @@ public class SensorRecorder implements SensorEventListener{
                 StringBuilder init = new StringBuilder("");
                 mSensorIndex.put(file.getName(), init);
 
-                sensorPeriod = Config.sensorPeriods.get(sensorType);
+//                sensorPeriod = Config.sensorPeriods.get(sensorType);
                 //mSensorManager.registerListener(this, sensor, sensorPeriod);
 
                 //Setting sampling frequency as fastest provided by Android
