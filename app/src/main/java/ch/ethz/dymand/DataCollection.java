@@ -7,6 +7,7 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -20,6 +21,7 @@ import static ch.ethz.dymand.Config.dataCollectStartDate;
 import static ch.ethz.dymand.Config.dataCollectEndDate;
 import static ch.ethz.dymand.Config.discardDates;
 import static ch.ethz.dymand.Config.getDateNow;
+import static ch.ethz.dymand.Config.getDateNowForFilename;
 import static ch.ethz.dymand.Config.hasSelfReportBeenStarted;
 import static ch.ethz.dymand.Config.hasStartedRecording;
 import static ch.ethz.dymand.Config.isCentral;
@@ -32,6 +34,7 @@ import static ch.ethz.dymand.Config.recordingTriggeredNum;
 import static ch.ethz.dymand.Config.shouldConnect;
 import static ch.ethz.dymand.Callbacks.WatchPhoneCommCallback;
 import static ch.ethz.dymand.Callbacks.MessageCallback;
+import static ch.ethz.dymand.Config.subjectID;
 import static ch.ethz.dymand.Config.surveyAlert1;
 import static ch.ethz.dymand.Config.surveyAlert1Date;
 import static ch.ethz.dymand.Config.surveyAlert2;
@@ -45,14 +48,14 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
     SensorRecorder mSensorRecorder;
     private  static DataCollection instance = null;
     private static MessageCallback msg;
-    private static long DELAY_FOR_5_MINS = 5 * 60 * 1000;
+    //private static long DELAY_FOR_5_MINS = 5 * 60 * 1000;
     private static long DELAY_FOR_2_MINS = 2 * 60 * 1000;
     private static long DELAY_FOR_3_MINS = 3 * 60 * 1000;
     private static long DELAY_FOR_6_MINS = 6 * 60 * 1000;
     private static long DELAY_FOR_8_MINS = 8 * 60 * 1000;
 
     //Testing
-    //private static long DELAY_FOR_5_MINS = 1 * 60  * 1000;
+    private static long DELAY_FOR_5_MINS = 1 * 60  * 1000;
 
     private static final String LOG_TAG = "Data Collection";
     private WatchPhoneCommCallback commCallback;
@@ -88,9 +91,35 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         if(isCentral) tag = tag+"black_";
         else tag = tag + "white_";
 
-        File recordDir = new File(context.getApplicationContext().getFilesDir().getAbsolutePath()+"/"+tag+timeStamp);
-        recordDir.mkdirs();
-        String dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath()+"/"+tag+timeStamp+"/";
+//        File recordDir = new File(context.getApplicationContext().getFilesDir().getAbsolutePath()+"/"+tag+timeStamp);
+//        recordDir.mkdirs();
+//        String dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath()+"/"+tag+timeStamp+"/";
+
+        Calendar cal = Calendar.getInstance();
+        int day = cal.get(Calendar.DAY_OF_WEEK)-1;
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+
+        String dirPath = context.getFilesDir().getAbsolutePath()+"/Subject_" + subjectID +
+                "/Day_" + day + "/Hour_" + hour + "/" + getDateNowForFilename() + "/";
+
+
+//        String dirPath = context.getFilesDir().getAbsolutePath()+"/Subject_" + subjectID + "/Day_8" + "/Hour_" + hour + "/";
+
+        File dir = new File(dirPath);
+
+        Log.i(LOG_TAG, "directory exist: " + dir.exists());
+
+        dir.mkdirs();
+
+        //Check if folder exists
+//        if (!dir.exists()){
+//
+//            Log.d(LOG_TAG, "directory does not exist");
+//            dir.mkdir();
+//        }else{
+//            Log.d(LOG_TAG, "directory exists");
+//        }
+
 
         mAudioRecorder = new BackgroundAudioRecorder(context);
         mSensorRecorder = new SensorRecorder(context);

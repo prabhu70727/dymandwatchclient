@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Calendar;
 import java.util.Date;
 
 import ch.ethz.dymand.Audio.BackgroundAudioRecorder;
@@ -21,6 +22,7 @@ import ch.ethz.dymand.R;
 
 import static ch.ethz.dymand.Config.DEBUG_MODE;
 import static ch.ethz.dymand.Config.SERVICE_STRING;
+import static ch.ethz.dymand.Config.getDateNowForFilename;
 import static ch.ethz.dymand.Config.hasVoiceSampleBeenCollected;
 import static ch.ethz.dymand.Config.subjectID;
 
@@ -40,6 +42,7 @@ public class GetVoiceSampleActivity extends WearableActivity {
         // Enables Always-on
         setAmbientEnabled();
 
+        Log.i(TAG, "Getting voice sample");
         recordButton = findViewById(R.id.recordBtn);
 
         recordButton.setOnClickListener(new View.OnClickListener() {
@@ -73,15 +76,40 @@ public class GetVoiceSampleActivity extends WearableActivity {
                 }
             }
         });
+
+
+        //Testing: TODO - remove
+        //completeRecording();
     }
 
 
     public void startRecording() throws FileNotFoundException {
         Log.d(TAG, "starting recording");
         long timeStamp = System.currentTimeMillis();
-        File recordDir = new File(getApplicationContext().getFilesDir().getAbsolutePath()+"/"+TAG+timeStamp);
-        recordDir.mkdirs();
-        String dirPath = getApplicationContext().getFilesDir().getAbsolutePath()+"/"+TAG+timeStamp+"/";
+//        File recordDir = new File(getApplicationContext().getFilesDir().getAbsolutePath()+"/"+TAG+timeStamp);
+//        recordDir.mkdirs();
+//        String dirPath = getApplicationContext().getFilesDir().getAbsolutePath()+"/"+TAG+timeStamp+"/";
+
+        Calendar cal = Calendar.getInstance();
+        int day = cal.get(Calendar.DAY_OF_WEEK)-1;
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+
+        String dirPath = getApplicationContext().getFilesDir().getAbsolutePath()+"/Subject_" + subjectID +
+                "/Day_" + day + "/Hour_" + hour + "/" + getDateNowForFilename() + "/";
+
+//        String dirPath = getApplicationContext().getFilesDir().getAbsolutePath()+"/Subject_" + subjectID + "/Day_8" + "/Hour_" + hour + "/";
+
+        File dir = new File(dirPath);
+
+        Log.i(TAG, "directory exist: " + dir.exists());
+        dir.mkdirs();
+
+        //Check if folder exists
+//        if (!dir.exists()){
+//            Log.d(TAG, "directory does not exist");
+//            dir.mkdir();
+//        }
+
         recorder.startRecording(dirPath);
     }
 

@@ -46,6 +46,7 @@ import static ch.ethz.dymand.Config.isSelfReportCompleted;
 import static ch.ethz.dymand.Config.last5Mins;
 import static ch.ethz.dymand.Config.lastRecordedTime;
 import static ch.ethz.dymand.Config.logStatusFileCreated;
+import static ch.ethz.dymand.Config.makeDirectories;
 import static ch.ethz.dymand.Config.morningEndHourWeekday;
 import static ch.ethz.dymand.Config.morningStartHourWeekday;
 import static ch.ethz.dymand.Config.noSilenceDates;
@@ -98,6 +99,7 @@ enum DataCollectionHour{
 public class Scheduler {
 
     private  static Scheduler instance = null; //singleton instance of class
+    private  static String subject = "/Subject_" + subjectID + "/";
     static Context  context;
     private static String dirPath;
     private static BleCallback ble;
@@ -105,12 +107,12 @@ public class Scheduler {
     private static MessageCallback msg;
     private static long DELAY_FOR_1_MIN =  5 * 1000; //10000; //
     private static long minTimeBtnRecordings = 20 * 60 * 1000; //minimum time between recordings is 20 mins
-    private static long DELAY_FOR_55_MINS = 44 * 60 * 1000; //5000; //
+    //private static long DELAY_FOR_55_MINS = 44 * 60 * 1000; //5000; //
     private static long DELAY_FOR_60_MINS = 60 * 60 * 1000; //10000; //
     private static Calendar endOf7daysDate;
 
 //    private static long minTimeBtnRecordings = 4 * 60 * 1000; //minimum time between recordings is 20 mins
-//    private static long DELAY_FOR_55_MINS = 2 * 60 * 1000; //5000; //
+    private static long DELAY_FOR_55_MINS = 1 * 60 * 1000; //5000; //
 //    private static long DELAY_FOR_60_MINS = 5 * 60 * 1000; //10000; //
 
 //    private static long DELAY_FOR_60_MINS = 1 * 60 * 1000; //10000; //
@@ -193,7 +195,6 @@ public class Scheduler {
 
         //TODO: Remove
         logStatus();
-
 
         //Sets start time to next monday morning start time
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
@@ -490,10 +491,18 @@ public class Scheduler {
 
         if (!logStatusFileCreated) {
 
+            //Create folders
+            //makeDirectories(dirPath);
+
+            //Create main folder with subject's id
+            File mainFolder = new File(dirPath+subject);
+            mainFolder.mkdirs();
+
             //Create files for logging status of app
-            logFile = new File(dirPath, "log_status_" + subjectID + ".csv");
-            errorLogFile = new File(dirPath, "error_logs_" + subjectID + ".csv");
-            bleSSFile = new File(dirPath, "ble_signal_strength_log.csv");
+            logFile = new File(dirPath, subject+ "log_status_" + subjectID + ".csv");
+            errorLogFile = new File(dirPath, subject+"error_logs_" + subjectID + ".csv");
+            bleSSFile = new File(dirPath, subject+"ble_signal_strength_log.csv");
+
             logStatusFileCreated = true;
 
             //Record that the files have been created and put in storage
@@ -539,12 +548,12 @@ public class Scheduler {
         //In which case, we need need to create an object reference to the file
         if (logFile == null || errorLogFile == null){
             //Create files for logging status of app
-            logFile = new File(dirPath, "log_status_" + subjectID + ".csv");
-            errorLogFile = new File(dirPath, "error_logs_" + subjectID + ".csv");
+            logFile = new File(dirPath, subject+"log_status_" + subjectID + ".csv");
+            errorLogFile = new File(dirPath, subject+"error_logs_" + subjectID + ".csv");
         }
 
         if (isCentral && (bleSSFile == null)){
-            bleSSFile = new File(dirPath, "ble_signal_strength_log.csv");
+            bleSSFile = new File(dirPath, subject+"ble_signal_strength_log.csv");
         }
 
         //Get data to log
