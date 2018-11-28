@@ -31,7 +31,7 @@ import static ch.ethz.dymand.Config.prevLastRecordedTime;
 import static ch.ethz.dymand.Config.recordedInHour;
 import static ch.ethz.dymand.Config.recordingTriggeredDates;
 import static ch.ethz.dymand.Config.recordingTriggeredNum;
-import static ch.ethz.dymand.Config.shouldConnect;
+import static ch.ethz.dymand.Config.setShouldConnect;
 import static ch.ethz.dymand.Callbacks.WatchPhoneCommCallback;
 import static ch.ethz.dymand.Callbacks.MessageCallback;
 import static ch.ethz.dymand.Config.subjectID;
@@ -267,7 +267,8 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                     discardDates = discardDates + getDateNow();
 
                     //Reset values
-                    shouldConnect = true;
+                    //shouldConnect = true;
+                    setShouldConnect();
                     lastRecordedTime = prevLastRecordedTime; //reset last recorded time
                     hasStartedRecording = false;
                 }else{
@@ -305,9 +306,9 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                     discardDates = discardDates + getDateNow();
 
                     //Reset values
+                    setShouldConnect();
                     hasStartedRecording = false;
                     lastRecordedTime = prevLastRecordedTime; //reset last recorded time
-                    hasStartedRecording = false;
                 }
             }
         };
@@ -343,10 +344,9 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
 
     @Override
     public void collectDataCallBack() throws FileNotFoundException {
-        //Looper.prepare();
-        if(!hasStartedRecording && !recordedInHour) {
+        //Collect data if it is not recording and the self report has not been completed
+        if(!hasStartedRecording && !isSelfReportCompleted) {
             startRecording("" + System.currentTimeMillis());
         }
-        //Looper.loop();
     }
 }

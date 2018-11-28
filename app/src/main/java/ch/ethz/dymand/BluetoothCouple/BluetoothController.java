@@ -27,6 +27,8 @@ import static ch.ethz.dymand.Config.getDateNow;
 import static ch.ethz.dymand.Config.hasStartedRecording;
 import static ch.ethz.dymand.Config.closeEnoughNum;
 import static ch.ethz.dymand.Config.recordedInHour;
+import static ch.ethz.dymand.Config.setShouldConnect;
+import static ch.ethz.dymand.Config.shouldConnectStatus;
 
 
 public class BluetoothController implements
@@ -96,7 +98,8 @@ public class BluetoothController implements
             msg.triggerMsg("BLE started??");
         }
 
-        Config.shouldConnect = true; // may be an assertion..
+        setShouldConnect();
+
         if (Config.isCentral) {
             mBluetoothCentralScan = new BluetoothCentralScan(mContext, this);
             mBluetoothCentralScan.startScan();
@@ -130,7 +133,7 @@ public class BluetoothController implements
         // restart scanning - end
 
         // TODO: 18.11.18 remove
-        Config.recordedInHour = false;
+        //Config.recordedInHour = false;
 
         Log.i(LOG_TAG, "Start recording");
         // Code to start recording..
@@ -143,7 +146,7 @@ public class BluetoothController implements
     @Override
     public void notConnected(BluetoothDevice device) {
         Log.i(LOG_TAG, "Not connected");
-        Config.shouldConnect = true;
+        setShouldConnect();
 
         // restart scanning... Gatt is disconnected already..
         restartScanning();
@@ -185,7 +188,7 @@ public class BluetoothController implements
 
 
         // TODO: 18.11.18 remove
-        Config.recordedInHour = false;
+        //Config.recordedInHour = false;
 
         Log.i(LOG_TAG, "Start recording");
         // Code to start recording..
@@ -224,14 +227,14 @@ public class BluetoothController implements
         restartScanning();
         // restart scanning - end
 
-        Config.shouldConnect = true;
+        setShouldConnect();
     }
 
 
     // todo check why mBluetoothManager.openGattServer() returns null
     @Override
     public synchronized void startBleCallback() {
-        if ((!(Config.shouldConnect == true))) {
+        if ((!(shouldConnectStatus() == true))) {
             Log.e("Logs", "BStart BLE failed");
             errorLogs =  errorLogs + LOG_TAG + ": Start BLE failed "   + " \n";
             throw new AssertionError();

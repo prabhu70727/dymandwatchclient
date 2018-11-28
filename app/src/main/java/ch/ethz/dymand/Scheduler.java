@@ -54,9 +54,10 @@ import static ch.ethz.dymand.Config.noSilenceNum;
 import static ch.ethz.dymand.Config.recordedInHour;
 import static ch.ethz.dymand.Config.recordingTriggeredDates;
 import static ch.ethz.dymand.Config.recordingTriggeredNum;
+import static ch.ethz.dymand.Config.resetShouldConnect;
 import static ch.ethz.dymand.Config.scanStartDates;
 import static ch.ethz.dymand.Config.scanWasStarted;
-import static ch.ethz.dymand.Config.shouldConnect;
+import static ch.ethz.dymand.Config.setShouldConnect;
 import static ch.ethz.dymand.Config.startAdvertTriggerDates;
 import static ch.ethz.dymand.Config.startAdvertTriggerNum;
 import static ch.ethz.dymand.Config.startHourWeekend;
@@ -680,10 +681,10 @@ public class Scheduler {
 
         //Check if minimum time between recordings has elapsed
         if (diff > minTimeBtnRecordings ){
-            shouldConnect = true;
+            setShouldConnect();
             return 0;
         }else{
-            shouldConnect = false;
+            resetShouldConnect();
 
             if (ble != null){
                 ble.reStartBleCallback();
@@ -705,7 +706,7 @@ public class Scheduler {
         Runnable timerRunnable = new Runnable() {
             public void run() {
                 if(ble != null) {
-                    shouldConnect = true;
+                    setShouldConnect();
                     ble.startBleCallback();
                 }
 

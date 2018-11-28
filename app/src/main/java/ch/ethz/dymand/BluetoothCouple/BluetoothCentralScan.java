@@ -29,8 +29,10 @@ import static ch.ethz.dymand.Config.closeEnoughDates;
 import static ch.ethz.dymand.Config.closeEnoughNum;
 import static ch.ethz.dymand.Config.errorLogs;
 import static ch.ethz.dymand.Config.getDateNow;
+import static ch.ethz.dymand.Config.resetShouldConnect;
 import static ch.ethz.dymand.Config.scanStartDates;
 import static ch.ethz.dymand.Config.scanWasStarted;
+import static ch.ethz.dymand.Config.shouldConnectStatus;
 import static ch.ethz.dymand.Config.startScanTriggerDates;
 import static ch.ethz.dymand.Config.startScanTriggerNum;
 
@@ -165,7 +167,7 @@ public class BluetoothCentralScan {
             String toWrite = getDateNow() + "," + System.currentTimeMillis()+","+rssi+"\n";
             bleSSFileStream.write(toWrite.getBytes());
 
-            if(Config.shouldConnect){
+            if(shouldConnectStatus()){
                 if(rssi >= Config.threshold) {
 
                     //Record closeness info
@@ -173,7 +175,7 @@ public class BluetoothCentralScan {
                     closeEnoughDates = closeEnoughDates + " | " + getDateNow();
 
                     Log.i(LOG_TAG, "To connect callback");
-                    Config.shouldConnect = false;
+                    resetShouldConnect();
                     stopScan();
                     mCentralScanListerner.found(device);
                 }

@@ -255,6 +255,27 @@ public class Config {
         return root;
     }
 
+    public static void setShouldConnect(){
+
+        Calendar rightNow = Calendar.getInstance(); //get calendar instance
+        int currentMinute = rightNow.get(Calendar.MINUTE);
+
+        //Check to make sure it's less than 10 mins to next hour
+        int minUntilNextHour = 60 - currentMinute;
+
+        if ( !(minUntilNextHour <= 10)){
+            shouldConnect = true;
+        }
+    }
+
+    public static boolean shouldConnectStatus(){
+        return shouldConnect;
+    }
+
+    public static void resetShouldConnect(){
+        shouldConnect = false;
+    }
+
     /* Checks if external storage is available for read and write */
     public static void isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
