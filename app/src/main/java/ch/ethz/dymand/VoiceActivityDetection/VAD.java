@@ -245,11 +245,11 @@ public class VAD implements MicRecorder.MicrophoneListener {
         if (!isSilent){
             boolean isSpeaking = isSpeech(buffer);
             noSilenceNum++;
-            noSilenceDates = noSilenceDates + " | " + getDateNow();
+            noSilenceDates = noSilenceDates + getDateNow();
 
             if (isSpeaking){
                 vadNum++;
-                vadDates = vadDates + " | " + getDateNow();
+                vadDates = vadDates + getDateNow();
 
                 setStartDataCollection(isSpeaking);
                 listener.speech();

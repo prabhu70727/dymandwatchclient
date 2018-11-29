@@ -545,6 +545,15 @@ public class Scheduler {
             }
         }
 
+
+        //Write system and app logs
+        Calendar cal = Calendar.getInstance();
+        int day = cal.get(Calendar.DAY_OF_WEEK)-1;
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        String log = dirPath + subject+ "logs_" + subjectID + "_Day_" + day + "_Hour_" + hour + ".csv";
+        //Runtime.getRuntime().exec(new String[]{"logcat", "-f", log, "MyAppTAG:V", "*:S"});
+        Runtime.getRuntime().exec(new String[]{"logcat", "-v", "time", "-f", log});
+
         //Check if the Files references are null. If they are, then it means the app was restarted
         //In which case, we need need to create an object reference to the file
         if (logFile == null || errorLogFile == null){

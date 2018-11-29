@@ -19,6 +19,7 @@ import ch.ethz.dymand.VoiceActivityDetection.VAD;
 import static android.content.Context.VIBRATOR_SERVICE;
 import static ch.ethz.dymand.Config.DEBUG_MODE;
 import static ch.ethz.dymand.Config.closeEnoughDates;
+import static ch.ethz.dymand.Config.collectDataDates;
 import static ch.ethz.dymand.Config.collectDataNum;
 import static ch.ethz.dymand.Config.connectedDates;
 import static ch.ethz.dymand.Config.connectedNum;
@@ -311,7 +312,8 @@ public class BluetoothController implements
      */
     private static void collectData() throws FileNotFoundException {
         collectDataNum++;
-        connectedDates = connectedDates + getDateNow() + "H: " + hasStartedRecording + " R: " + recordedInHour;
+        collectDataDates = collectDataDates + getDateNow();
+        //+ "H: " + hasStartedRecording + " R: " + recordedInHour;
 
         if (!hasStartedRecording) {
             if (dataCollector != null) {

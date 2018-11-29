@@ -131,7 +131,7 @@ public class BluetoothPeripheral {
                 Log.i(LOG_TAG, "Peripheral advertising started.");
 
                 mAdvertising = true;
-                advertisingStarted = advertisingStarted + mAdvertising;
+                advertisingStarted = advertisingStarted + " | " + mAdvertising;
                 advertisingStartedDates = advertisingStartedDates + Config.getDateNow();
             }
 
@@ -141,7 +141,7 @@ public class BluetoothPeripheral {
                 Log.i(LOG_TAG, "Peripheral advertising failed: " + errorCode);
 
                 mAdvertising = false;
-                advertisingStarted = advertisingStarted + mAdvertising;
+                advertisingStarted = advertisingStarted +  " | " + mAdvertising;
                 advertisingStartedDates = advertisingStartedDates + Config.getDateNow();
             }
         };

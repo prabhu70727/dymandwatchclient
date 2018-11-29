@@ -80,7 +80,7 @@ public class BluetoothCentralScan {
             Log.i(LOG_TAG, "Bluetooth started Scanning with Service UUID:" + SERVICE_UUID);
             mScanning = true;
 
-            scanWasStarted = scanWasStarted + mScanning;
+            scanWasStarted = scanWasStarted + " | " + mScanning;
             scanStartDates = scanStartDates + Config.getDateNow();
 
             mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
@@ -154,7 +154,7 @@ public class BluetoothCentralScan {
             errorLogs =  errorLogs + LOG_TAG + ": BLE Scan Failed with code " + errorCode  + " \n";
             mScanning = false;
 
-            scanWasStarted = scanWasStarted + mScanning;
+            scanWasStarted = scanWasStarted + " | " + mScanning;
             scanStartDates = scanWasStarted + Config.getDateNow();
         }
 
@@ -172,7 +172,7 @@ public class BluetoothCentralScan {
 
                     //Record closeness info
                     closeEnoughNum++;
-                    closeEnoughDates = closeEnoughDates + " | " + getDateNow();
+                    closeEnoughDates = closeEnoughDates + getDateNow();
 
                     Log.i(LOG_TAG, "To connect callback");
                     resetShouldConnect();
