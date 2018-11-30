@@ -20,7 +20,7 @@ import java.util.UUID;
 
 public class Config {
     private static String LOG_TAG = "CONFIG: ";
-    public static boolean DEBUG_MODE = true;
+    public static boolean DEBUG_MODE = false;
     public static final int NOTIFICATION_ID = 71193; //ID for foreground service - can be any number except zero
     public static final String CHANNEL_ID = "DynamdNotificationServiceChannel";
 

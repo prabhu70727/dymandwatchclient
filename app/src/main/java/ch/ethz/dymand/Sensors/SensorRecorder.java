@@ -45,7 +45,7 @@ public class SensorRecorder implements SensorEventListener{
             toTrack.append("," + event.values[i]);
         }
 
-        Log.i(LOG_TAG, sensorName + "," + toTrack.toString());
+        //Log.i(LOG_TAG, sensorName + "," + toTrack.toString());
 
         //append new data sample
         mSensorIndex.get(sensorName+extension).append(toTrack.toString()+"\n");
