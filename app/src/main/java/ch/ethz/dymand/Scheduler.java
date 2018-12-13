@@ -19,15 +19,18 @@ import java.util.Date;
 
 import static android.content.Context.BATTERY_SERVICE;
 import static android.content.Context.VIBRATOR_SERVICE;
+import static ch.ethz.dymand.Config.MILLIS;
 import static ch.ethz.dymand.Config.advertisingStarted;
 import static ch.ethz.dymand.Config.advertisingStartedDates;
 import static ch.ethz.dymand.Config.batteryPercentage;
+import static ch.ethz.dymand.Config.beforeStudylogFile;
 import static ch.ethz.dymand.Config.closeEnoughDates;
 import static ch.ethz.dymand.Config.closeEnoughNum;
 import static ch.ethz.dymand.Config.collectDataDates;
 import static ch.ethz.dymand.Config.collectDataNum;
 import static ch.ethz.dymand.Config.connectedDates;
 import static ch.ethz.dymand.Config.connectedNum;
+import static ch.ethz.dymand.Config.createLogHeader;
 import static ch.ethz.dymand.Config.dataCollectEndDate;
 import static ch.ethz.dymand.Config.dataCollectStartDate;
 import static ch.ethz.dymand.Config.discardDates;
@@ -40,6 +43,7 @@ import static ch.ethz.dymand.Config.hasLogFileBeenCreated;
 import static ch.ethz.dymand.Config.hasSelfReportBeenStarted;
 import static ch.ethz.dymand.Config.hasStartedRecording;
 import static ch.ethz.dymand.Config.hasStudyStarted;
+import static ch.ethz.dymand.Config.isBeforeStudyLogFileCreated;
 import static ch.ethz.dymand.Config.isCentral;
 import static ch.ethz.dymand.Config.isDemoComplete;
 import static ch.ethz.dymand.Config.isSelfReportCompleted;
@@ -49,6 +53,8 @@ import static ch.ethz.dymand.Config.logStatusFileCreated;
 import static ch.ethz.dymand.Config.makeDirectories;
 import static ch.ethz.dymand.Config.morningEndHourWeekday;
 import static ch.ethz.dymand.Config.morningStartHourWeekday;
+import static ch.ethz.dymand.Config.nextMondayDate;
+import static ch.ethz.dymand.Config.noOfExceptionsInHour;
 import static ch.ethz.dymand.Config.noSilenceDates;
 import static ch.ethz.dymand.Config.noSilenceNum;
 import static ch.ethz.dymand.Config.recordedInHour;
@@ -75,6 +81,7 @@ import static ch.ethz.dymand.Config.surveyTriggerNum;
 import static ch.ethz.dymand.Config.vadDates;
 import static ch.ethz.dymand.Config.vadNum;
 import static ch.ethz.dymand.Config.bleSSFile;
+import static ch.ethz.dymand.DataCollectionHour.BEFORE_START;
 import static ch.ethz.dymand.DataCollectionHour.COLLECT_DATA;
 import static ch.ethz.dymand.DataCollectionHour.END;
 import static ch.ethz.dymand.DataCollectionHour.END_OF_7_DAYS;
@@ -91,6 +98,7 @@ enum DataCollectionHour{
     COLLECT_DATA, //hours during which data should be collected
     END_OF_DAY, //end of data hour
     END_OF_7_DAYS, //end of 7 days
+    BEFORE_START, //before start of study
     NONE //none of them
 }
 
@@ -206,18 +214,19 @@ public class Scheduler {
             daysUntilNextMonday =(Calendar.SATURDAY - today + 2) % 7; //the 2 is the difference between Saturday and Monday
         }
 
-        Calendar nextMondayDate = Calendar.getInstance();
-        Calendar nextHour = Calendar.getInstance();
-        nextHour.add(Calendar.HOUR_OF_DAY,1);
-        nextHour.set(Calendar.MINUTE, 0);
-        nextHour.set(Calendar.SECOND, 0);
-        long millisUntilNextHour = nextHour.getTimeInMillis()- rightNow.getTimeInMillis();
-
+        nextMondayDate = Calendar.getInstance();
         nextMondayDate.add(Calendar.DAY_OF_YEAR,daysUntilNextMonday);
         nextMondayDate.set(Calendar.HOUR_OF_DAY,morningStartHourWeekday);
         nextMondayDate.set(Calendar.MINUTE, 0);
         nextMondayDate.set(Calendar.SECOND, 0);
         long millisUntilNextMondayStart = nextMondayDate.getTimeInMillis()- rightNow.getTimeInMillis();
+
+        //Sets start time to next hour start time
+        Calendar nextHour = Calendar.getInstance();
+        nextHour.add(Calendar.HOUR_OF_DAY,1);
+        nextHour.set(Calendar.MINUTE, 0);
+        nextHour.set(Calendar.SECOND, 0);
+        long millisUntilNextHour = nextHour.getTimeInMillis()- rightNow.getTimeInMillis();
 
         //Set end of 7 days date
         endOf7daysDate = (Calendar) nextMondayDate.clone();
@@ -233,8 +242,8 @@ public class Scheduler {
         Log.d("Scheduler", "Current date: " + df.format(rightNow.getTime()));
         Log.d("Scheduler", "Next monday date: " + df.format(nextMondayDate.getTime()));
         Log.d("Scheduler", "End of 7 days  date: " + df.format(endOf7daysDate.getTime()));
-        Log.d("Scheduler", "Seconds till next monday is: " + millisUntilNextMondayStart/1000);
-        Log.d("Scheduler", "Hours till next monday is: " + millisUntilNextMondayStart/(1000*60*60));
+        Log.d("Scheduler", "Total Seconds till next monday is: " + millisUntilNextMondayStart/1000);
+        Log.d("Scheduler", "Total Hours till next monday is: " + millisUntilNextMondayStart/(1000*60*60));
 
         Log.d("Scheduler", "Next hour date: " + df.format(nextHour.getTime()));
         Log.d("Scheduler", "Minutes till next hour: " + millisUntilNextHour/(1000*60));;
@@ -286,6 +295,8 @@ public class Scheduler {
                     runEachHourly();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
 
                 //TODO: remove for actual deployment
@@ -319,6 +330,8 @@ public class Scheduler {
 
             //timerHandler.postDelayed(timerRunnable, millisUntilNextMondayStart);
         }
+
+        logBeforeStudyStart();
 
     }
 
@@ -484,6 +497,85 @@ public class Scheduler {
     }
 
     /**
+     * Creates string containing info about duration until study starts
+     * @return logString
+     */
+    private static String createBeforeStudyLogString(){
+        //Create string to log
+        StringBuilder outputString = new StringBuilder();
+
+        //Get battery info
+        BatteryManager bm = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
+        batteryPercentage = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+
+        //Get date info
+        SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
+        Calendar rightNow = Calendar.getInstance(); //get calendar instance
+
+        //Get duration until next Monday
+
+        int SECONDS_IN_DAYS = 24*60*60;
+        int SECONDS_IN_HOURS = 60*60;
+        int SECONDS_IN_MINUTES = 60;
+
+        long millisUntilNextMondayStart = nextMondayDate.getTimeInMillis()- rightNow.getTimeInMillis();
+//        int secondsUntilNextMonday = (int) millisUntilNextMondayStart/MILLIS;
+//        int minutesUntilNextMonday = secondsUntilNextMonday/60;
+//        int hoursUntilNextMonday = minutesUntilNextMonday/60;
+//        int daysUntilNextMonday = hoursUntilNextMonday/24;
+
+        int totalSecondsUntilNextMonday = (int) millisUntilNextMondayStart/MILLIS;
+        int daysUntilNextMonday = totalSecondsUntilNextMonday/SECONDS_IN_DAYS;
+
+        int remainingHoursExpressedInSeconds = totalSecondsUntilNextMonday%SECONDS_IN_DAYS;
+        int hoursUntilNextMonday = remainingHoursExpressedInSeconds/SECONDS_IN_HOURS;
+
+        int remainingMinutesExpressedInSeconds = remainingHoursExpressedInSeconds%SECONDS_IN_HOURS;
+        int minutesUntilNextMonday = remainingMinutesExpressedInSeconds/SECONDS_IN_MINUTES;
+
+        int secondsUntilNextMonday = remainingMinutesExpressedInSeconds%SECONDS_IN_MINUTES;
+
+        Log.d("Scheduler", "Log Information Before Study Starts");
+        Log.d("Scheduler", "millisUntilNextMondayStart " + millisUntilNextMondayStart);
+        Log.d("Scheduler", "totalSecondsUntilNextMonday " + totalSecondsUntilNextMonday);
+        Log.d("Scheduler", "remainingHoursExpressedInSeconds " + remainingHoursExpressedInSeconds);
+        Log.d("Scheduler", "remainingMinutesExpressedInSeconds " + totalSecondsUntilNextMonday);
+
+        Log.d("Scheduler", "Current date: " + df.format(rightNow.getTime()));
+        Log.d("Scheduler", "Next monday date: " + df.format(nextMondayDate.getTime()));
+        Log.d("Scheduler", "End of 7 days  date: " + df.format(endOf7daysDate.getTime()));
+        Log.d("Scheduler", "Remaining days till next monday is: " + daysUntilNextMonday );
+        Log.d("Scheduler", "Remaining hours till next monday is: " + hoursUntilNextMonday);
+        Log.d("Scheduler", "Remaining minutes till next monday is: " + minutesUntilNextMonday);
+        Log.d("Scheduler", "Remaining seconds till next monday is: " + secondsUntilNextMonday);
+
+        //Create String
+        outputString.append(df.format(rightNow.getTime()));
+        outputString.append(",");
+
+        outputString.append(batteryPercentage);
+        outputString.append(",");
+
+        outputString.append(daysUntilNextMonday);
+        outputString.append(",");
+
+        outputString.append(hoursUntilNextMonday);
+        outputString.append(",");
+
+        outputString.append(minutesUntilNextMonday);
+        outputString.append(",");
+
+        outputString.append(secondsUntilNextMonday);
+        outputString.append(",");
+
+        outputString.append(noOfExceptionsInHour);
+        outputString.append("\n");
+
+        String logString = outputString.toString();
+        return logString;
+    }
+
+    /**
      * Logs status of app over the past 1 hour to file
      */
     public static void logStatus() throws IOException {
@@ -521,7 +613,7 @@ public class Scheduler {
             }
 
 
-            String header = Config.createLogHeader();
+            String header = createLogHeader();
             String log = "Subject ID: " + subjectID + "\n" + header + "\n";
             String errorLogHeader = "Subject ID: " + subjectID + "\n";
             String bleLogHeader = "Subject ID: " + subjectID + "\n" + "Date,Signal Strength" + "\n";
@@ -550,7 +642,9 @@ public class Scheduler {
         Calendar cal = Calendar.getInstance();
         int day = cal.get(Calendar.DAY_OF_WEEK)-1;
         int hour = cal.get(Calendar.HOUR_OF_DAY);
-        String log = dirPath + subject+ "logs_" + subjectID + "_Day_" + day + "_Hour_" + hour + ".csv";
+        int week = cal.get(Calendar.WEEK_OF_YEAR);
+
+        String log = dirPath + subject+ "logs_" + subjectID + "_Week_" + week + "_Day_" + day + "_Hour_" + hour + ".csv";
         //Runtime.getRuntime().exec(new String[]{"logcat", "-f", log, "MyAppTAG:V", "*:S"});
         Runtime.getRuntime().exec(new String[]{"logcat", "-v", "time", "-f", log});
 
@@ -585,10 +679,66 @@ public class Scheduler {
 
 
     /**
-     * Executes at the start of each hour
+     * Logs hourly information about time until study starts
+     * @throws IOException
+     */
+    public static void logBeforeStudyStart() throws IOException {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        isBeforeStudyLogFileCreated = sharedPref.getBoolean("isBeforeStudyLogFileCreated", false);
+
+        if (!isBeforeStudyLogFileCreated) {
+
+            //Create main folder with subject's id
+            File mainFolder = new File(dirPath + subject);
+            mainFolder.mkdirs();
+
+            //Create files for logging status of app
+            beforeStudylogFile = new File(dirPath, subject + "before_study_log_" + subjectID + ".csv");
+            isBeforeStudyLogFileCreated = true;
+
+            //Record that the files have been created and put in storage
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putBoolean("isBeforeStudyLogFileCreated", true);
+            editor.apply();
+
+            //Log Subject id and header
+            FileOutputStream stream = new FileOutputStream(beforeStudylogFile);
+
+            String header = "Date, Battery %, Days, Hours, Minutes, Seconds, No of Exceptions"; //describes the time until the study starts
+            String log = "Subject ID: " + subjectID + "\n" + header + "\n";
+
+            try {
+                stream.write(log.getBytes());
+            } finally {
+                stream.close();
+            }
+        }
+
+        //Check if the Files references are null. If they are, then it means the app was restarted
+        //In which case, we need need to create an object reference to the file before writing to it
+        if (beforeStudylogFile == null){
+            //Create file reference for logging
+            beforeStudylogFile = new File(dirPath, subject + "before_study_log" + subjectID + ".csv");
+        }
+
+        //Get data to log
+        String outputString = createBeforeStudyLogString();
+
+        //Write status info to file
+        FileOutputStream stream = new FileOutputStream(beforeStudylogFile,true);
+
+        try {
+            stream.write(outputString.toString().getBytes());
+        } finally {
+            stream.close();
+        }
+    }
+
+    /**
+     *Executes at the start of each hour
      * Decides whether to collect data in this hour, start BLE, restart BLE, or stop BLE
      */
-    public static void runEachHourly() throws FileNotFoundException {
+    public static void runEachHourly() throws IOException {
         long delayDuration;
 
         //Reset values associated with recording each hour
@@ -597,10 +747,16 @@ public class Scheduler {
         isSelfReportCompleted = false;
         hasSelfReportBeenStarted = false;
 
+        //Reset general values
+        noOfExceptionsInHour = 0;
+
         //Check which hour it is
         DataCollectionHour hour = checkHour();
 
         switch (hour){
+            case BEFORE_START:
+                logBeforeStudyStart();
+                break;
 
             case START:
                 startTimerfor55mins();
@@ -735,6 +891,12 @@ public class Scheduler {
         boolean isWeekDay = true;
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
 
+        //Check if it's before study starts
+        if (rightNow.get(Calendar.DAY_OF_YEAR) < nextMondayDate.get(Calendar.DAY_OF_YEAR) &&
+                rightNow.get(Calendar.HOUR_OF_DAY) < nextMondayDate.get(Calendar.HOUR_OF_DAY)){
+            return BEFORE_START;
+        }
+
         //Check if end of 7 days
         if (endOf7daysDate.get(Calendar.DAY_OF_YEAR) == rightNow.get(Calendar.DAY_OF_YEAR) &&
                 endOf7daysDate.get(Calendar.HOUR_OF_DAY) == rightNow.get(Calendar.HOUR_OF_DAY) ){
@@ -779,9 +941,10 @@ public class Scheduler {
 
         Log.d("Scheduler", "Current hour is " + hour);
 
-        //return hour;
+        return hour;
+
         //test
-        return START;
+        //return START;
     }
 
 

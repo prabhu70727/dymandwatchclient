@@ -15,6 +15,7 @@ import ch.ethz.dymand.Sensors.SensorRecorder;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -24,12 +25,14 @@ public class Config {
     public static final int NOTIFICATION_ID = 71193; //ID for foreground service - can be any number except zero
     public static final String CHANNEL_ID = "DynamdNotificationServiceChannel";
 
+    public static int noOfExceptionsInHour = 0;
+
     public static int STUDY_DURATION = 7; //number of days for the study
     public static int HR_FREQ = 1; //Hz
     public static int ACCEL_FREQ = 20;  //Hz
     public static int GYRO_FREQ = 20; //Hz
     public static int LIGHT_FREQ = 1; //HZ
-    public static int MILLIS = 1000000;
+    public static int MILLIS = 1000;
 
     public static int ACCEL_PERIOD = MILLIS/ACCEL_FREQ;
     public static int GYRO_PERIOD = MILLIS/GYRO_FREQ;
@@ -133,6 +136,8 @@ public class Config {
     public static boolean hasLogFileBeenCreated = false;
     public static boolean hasVoiceSampleBeenCollected = false;
 
+    public static Calendar nextMondayDate = null;
+
     //Log Status
 
     public static String errorLogs = "";
@@ -141,6 +146,8 @@ public class Config {
     public static File logFile = null;
     public static File errorLogFile = null;
     public static boolean logStatusFileCreated = false;
+    public static boolean isBeforeStudyLogFileCreated = false;
+    public static File beforeStudylogFile = null;
     public static int batteryPercentage = 0;
     public static int noSilenceNum = 0;
     public static String noSilenceDates = "";

@@ -17,6 +17,7 @@ import ch.ethz.dymand.Setup.MainActivity;
 import static ch.ethz.dymand.Config.errorLogFile;
 import static ch.ethz.dymand.Config.errorLogs;
 import static ch.ethz.dymand.Config.getDateNow;
+import static ch.ethz.dymand.Config.noOfExceptionsInHour;
 
 public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
 
@@ -28,6 +29,8 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
+
+        noOfExceptionsInHour++; //increment number of exceptions
 
         Intent intent = new Intent(contxt,MainActivity.class);
 
