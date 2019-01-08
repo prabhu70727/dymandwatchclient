@@ -25,7 +25,7 @@ import static ch.ethz.dymand.Config.SERVICE_UUID;
 
 public class BluetoothCentralConnect {
 
-    private static final String LOG_TAG = "Logs: Bluetooth Central";
+    private static final String LOG_TAG = "Logs: Bluetooth Central connect";
     private final Context mContext;
     private BluetoothGatt mGatt;
     private boolean mInitialized = false;
@@ -40,6 +40,7 @@ public class BluetoothCentralConnect {
     }
 
     void connectDevice(BluetoothDevice device, String timestamp) {
+        Log.i(LOG_TAG, "Logging Characteristic UUID before connection:" + CHARACTERISTIC_UUID);
         GattClientCallback gattClientCallback = new GattClientCallback();
         mGatt = device.connectGatt(mContext, false, gattClientCallback, BluetoothDevice.TRANSPORT_LE);
         mTimestamp = timestamp;
@@ -233,6 +234,7 @@ public class BluetoothCentralConnect {
     }
 
     public void disconnectGattServer() {
+        Log.i(LOG_TAG, "Disconnecting Gatt server");
         mConnected = false;
         mInitialized = false;
         if (mGatt != null) {

@@ -75,7 +75,7 @@ public class BluetoothCentralScan {
                     .build();
 
             //Asynchronous return? need to check
-            Log.i(LOG_TAG, "Bluetooth started Scanning");
+            Log.i(LOG_TAG, "Bluetooth started Scanning.." + SERVICE_UUID);
             mScanning = true;
 
             scanWasStarted = scanWasStarted + mScanning;
