@@ -21,8 +21,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import ch.ethz.dymand.BluetoothCouple.BluetoothController;
 import ch.ethz.dymand.FGService;
 import ch.ethz.dymand.R;
+import ch.ethz.dymand.VoiceActivityDetection.VAD;
 
 import static ch.ethz.dymand.Config.isSetupComplete;
 
@@ -102,6 +104,12 @@ public class MainActivity extends WearableActivity {
             startSetupCompleteActivity();
         }
         //
+
+        //TODO: remove
+        //VAD example
+//        VAD voiceDetector = new VAD(BluetoothController.getInstance(this));
+//        voiceDetector.recordSound();
+
     }
 
     private void startSetupCompleteActivity(){

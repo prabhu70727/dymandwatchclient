@@ -32,7 +32,7 @@ public class VAD implements MicRecorder.MicrophoneListener {
         Log.d("SAMPLES_PER_FRAME", ": "+SAMPLES_PER_FRAME);
         Log.d("WINDOW_SIZE", ": "+WINDOW_SIZE);
         Log.d("VOICE_THRESHOLD", ": "+VOICE_THRESHOLD);
-        Log.d("ENERGY_THRESHOLD", ": "+ENERGY_THRESHOLD);
+        Log.d("ENERGY_THRESHOLD", ": "+RMS_THRESHOLD);
         this.listener = listener;
 
     }
@@ -114,11 +114,11 @@ public class VAD implements MicRecorder.MicrophoneListener {
         boolean isSilence = true;
 
 
-        //Calculate energy
-        double energy = calculateEnergy(buffer);
+        //Calculate rms
+        double rms = calculateEnergy(buffer);
 
         //Check if above threshold
-        if (energy > ENERGY_THRESHOLD){
+        if (rms > RMS_THRESHOLD){
             isSilence = false;
         }
 
@@ -195,7 +195,7 @@ public class VAD implements MicRecorder.MicrophoneListener {
         for (short sample: buffer){
             mappedSample = (double) sample/ Math.abs(Short.MIN_VALUE);
 
-            if((i> FIRST_N_SAMPLES_DISCARDED) && Math.abs(mappedSample) > 0.008){
+            if((i> FIRST_N_SAMPLES_DISCARDED) && Math.abs(mappedSample) > DEVICE_NOISE_LEVEL){
             //if(Math.abs(mappedSample) > 0.008){
                 energy+=mappedSample*mappedSample;
                 sumAbsolute+= Math.abs(mappedSample);
@@ -227,7 +227,7 @@ public class VAD implements MicRecorder.MicrophoneListener {
         Log.d( "Min Index:", ""+minIndex);
         Log.d( "Mean Absolute:", ""+meanAbsolute);
 
-        return energy;
+        return rms;
     }
 
     @Override
@@ -245,11 +245,11 @@ public class VAD implements MicRecorder.MicrophoneListener {
         if (!isSilent){
             boolean isSpeaking = isSpeech(buffer);
             noSilenceNum++;
-            noSilenceDates = noSilenceDates + " | " + getDateNow();
+            noSilenceDates = noSilenceDates + getDateNow();
 
             if (isSpeaking){
                 vadNum++;
-                vadDates = vadDates + " | " + getDateNow();
+                vadDates = vadDates + getDateNow();
 
                 setStartDataCollection(isSpeaking);
                 listener.speech();

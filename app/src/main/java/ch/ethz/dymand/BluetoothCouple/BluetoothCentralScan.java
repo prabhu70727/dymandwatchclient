@@ -29,8 +29,10 @@ import static ch.ethz.dymand.Config.closeEnoughDates;
 import static ch.ethz.dymand.Config.closeEnoughNum;
 import static ch.ethz.dymand.Config.errorLogs;
 import static ch.ethz.dymand.Config.getDateNow;
+import static ch.ethz.dymand.Config.resetShouldConnect;
 import static ch.ethz.dymand.Config.scanStartDates;
 import static ch.ethz.dymand.Config.scanWasStarted;
+import static ch.ethz.dymand.Config.shouldConnectStatus;
 import static ch.ethz.dymand.Config.startScanTriggerDates;
 import static ch.ethz.dymand.Config.startScanTriggerNum;
 
@@ -75,10 +77,10 @@ public class BluetoothCentralScan {
                     .build();
 
             //Asynchronous return? need to check
-            Log.i(LOG_TAG, "Bluetooth started Scanning.." + SERVICE_UUID);
+            Log.i(LOG_TAG, "Bluetooth started Scanning with Service UUID:" + SERVICE_UUID);
             mScanning = true;
 
-            scanWasStarted = scanWasStarted + mScanning;
+            scanWasStarted = scanWasStarted + " | " + mScanning;
             scanStartDates = scanStartDates + Config.getDateNow();
 
             mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
@@ -99,6 +101,10 @@ public class BluetoothCentralScan {
     }
 
     public void stopScan() throws IOException {
+        if(!mScanning){
+            Log.i(LOG_TAG, "Bluetooth stopped Scanning already..");
+        }
+
         if (mScanning && mBluetoothAdapter != null && mBluetoothAdapter.isEnabled() && mBluetoothLeScanner != null) {
             Log.i(LOG_TAG, "Bluetooth stopped Scanning");
             mBluetoothLeScanner.stopScan(mScanCallback);
@@ -106,7 +112,7 @@ public class BluetoothCentralScan {
             if (bleSSFileStream != null){
                 bleSSFileStream.close();
             }
-
+            blockingLoop(500); // waiting for 500 ms
         }
         mBluetoothManager = null;
         mScanning = false;
@@ -148,12 +154,12 @@ public class BluetoothCentralScan {
             errorLogs =  errorLogs + LOG_TAG + ": BLE Scan Failed with code " + errorCode  + " \n";
             mScanning = false;
 
-            scanWasStarted = scanWasStarted + mScanning;
+            scanWasStarted = scanWasStarted + " | " + mScanning;
             scanStartDates = scanWasStarted + Config.getDateNow();
         }
 
-        //TODO : Synchronized? test it..
-        synchronized private void addScanResult(ScanResult result) throws IOException {
+
+        private synchronized void addScanResult(ScanResult result) throws IOException {
             BluetoothDevice device = result.getDevice();
             int rssi = result.getRssi();
 
@@ -161,21 +167,31 @@ public class BluetoothCentralScan {
             String toWrite = getDateNow() + "," + System.currentTimeMillis()+","+rssi+"\n";
             bleSSFileStream.write(toWrite.getBytes());
 
-            if(Config.shouldConnect){
+            if(shouldConnectStatus()){
                 if(rssi >= Config.threshold) {
 
                     //Record closeness info
                     closeEnoughNum++;
-                    closeEnoughDates = closeEnoughDates + " | " + getDateNow();
+                    closeEnoughDates = closeEnoughDates + getDateNow();
 
                     Log.i(LOG_TAG, "To connect callback");
+                    resetShouldConnect();
+                    stopScan();
                     mCentralScanListerner.found(device);
-                    Config.shouldConnect = false;
                 }
             }
         }
     }
 
+    public void blockingLoop(int recordTime) {
+        Log.i(LOG_TAG, "Waiting for " + recordTime + " milliseconds");
+        long endLoop = curTime() + recordTime;
+        while(curTime()<endLoop);
+    }
+
+    public long curTime(){
+        return System.currentTimeMillis();
+    }
 
     public interface CentralScanInterface {
         void found(BluetoothDevice device);

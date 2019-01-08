@@ -52,15 +52,13 @@ public class BluetoothCentralConnect {
             super.onConnectionStateChange(gatt, status, newState);
             if (status == BluetoothGatt.GATT_FAILURE) {
                 Log.i(LOG_TAG, "Device found but connection Interrupted - 1");
-                //mDeviceFoundConnectionInterrupted = true;
-                mCentralConnectListener.notConnected(mDevice);
                 disconnectGattServer();
+                mCentralConnectListener.notConnected(mDevice);
                 return;
             } else if (status != BluetoothGatt.GATT_SUCCESS) {
                 Log.i(LOG_TAG, "Device found but connection Interrupted - 2 :" + status);
-                //mDeviceFoundConnectionInterrupted = true;
-                mCentralConnectListener.notConnected(mDevice);
                 disconnectGattServer();
+                mCentralConnectListener.notConnected(mDevice);
                 return;
             }
             if (newState == BluetoothProfile.STATE_CONNECTED) {
@@ -69,9 +67,8 @@ public class BluetoothCentralConnect {
                 Log.i(LOG_TAG, "Connected and discovering services.");
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(LOG_TAG, "Device found but connection Interrupted - 3");
-                //mDeviceFoundConnectionInterrupted = true;
-                mCentralConnectListener.notConnected(mDevice);
                 disconnectGattServer();
+                mCentralConnectListener.notConnected(mDevice);
             }
         }
 
@@ -79,9 +76,8 @@ public class BluetoothCentralConnect {
             super.onServicesDiscovered(gatt, status);
             if (status != BluetoothGatt.GATT_SUCCESS) {
                 Log.i(LOG_TAG, "Device found but connection Interrupted - 4");
-                //mDeviceFoundConnectionInterrupted = true;
-                mCentralConnectListener.notConnected(mDevice);
                 disconnectGattServer();
+                mCentralConnectListener.notConnected(mDevice);
                 return;
             }
             if (status == BluetoothGatt.GATT_SUCCESS) {
@@ -101,18 +97,16 @@ public class BluetoothCentralConnect {
 
             if (service == null) {
                 Log.i(LOG_TAG, "Service is null");
-                //mDeviceFoundConnectionInterrupted = true;
-                mCentralConnectListener.notConnected(mDevice);
                 disconnectGattServer();
+                mCentralConnectListener.notConnected(mDevice);
                 return;
             }
 
             List<BluetoothGattCharacteristic> matchingCharacteristics = findCharacteristics(gatt);
             if (matchingCharacteristics.isEmpty()) {
                 Log.i(LOG_TAG,"Unable to find characteristics.");
-                //mDeviceFoundConnectionInterrupted = true;
-                mCentralConnectListener.notConnected(mDevice);
                 disconnectGattServer();
+                mCentralConnectListener.notConnected(mDevice);
                 return;
             }
 
@@ -121,10 +115,7 @@ public class BluetoothCentralConnect {
                 characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
                 enableCharacteristicNotification(gatt, characteristic);
             }
-
-            // sending the message here
-            sendMessage(mTimestamp);
-
+            // sending the message in the enableCharacteristicNotification(gatt, characteristic) function
         }
 
         public void onCharacteristicWrite(BluetoothGatt gatt,
@@ -134,16 +125,11 @@ public class BluetoothCentralConnect {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.i(LOG_TAG, "Characteristic (message) written successfully");
                 //mPeriReadMessage = true;
-                try {
-                    mCentralConnectListener.connected();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
             } else {
                 //mDeviceFoundConnectionInterrupted = true;
-                mCentralConnectListener.notConnected(mDevice);
-                disconnectGattServer();
                 Log.i(LOG_TAG, "Characteristic write unsuccessful, status: " + status);
+                disconnectGattServer();
+                mCentralConnectListener.notConnected(mDevice);
             }
         }
 
@@ -158,6 +144,11 @@ public class BluetoothCentralConnect {
                 Log.i(LOG_TAG, "Unable to convert message bytes to string");
             }
             Log.i(LOG_TAG, "Received message: " + messageString);
+            try {
+                mCentralConnectListener.connected();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
         }
 
     }
@@ -166,11 +157,12 @@ public class BluetoothCentralConnect {
         mInitialized = gatt.setCharacteristicNotification(characteristic, true);
         if (mInitialized) {
             Log.i(LOG_TAG, "Characteristic notification set successfully for " + characteristic.getUuid().toString());
+            sendMessage(mTimestamp);
         } else {
             Log.i(LOG_TAG, "Characteristic notification set failure for " + characteristic.getUuid().toString());
             //mDeviceFoundConnectionInterrupted = true;
-            mCentralConnectListener.notConnected(mDevice);
             disconnectGattServer();
+            mCentralConnectListener.notConnected(mDevice);
         }
     }
 
@@ -234,13 +226,14 @@ public class BluetoothCentralConnect {
     }
 
     public void disconnectGattServer() {
-        Log.i(LOG_TAG, "Disconnecting Gatt server");
+        Log.i(LOG_TAG, "Disconnecting gatt server");
         mConnected = false;
         mInitialized = false;
         if (mGatt != null) {
             mGatt.disconnect();
             mGatt.close();
         }
+        blockingLoop(500); // Waiting for 500 ms
     }
 
     private boolean sendMessage(String message) {
@@ -265,7 +258,19 @@ public class BluetoothCentralConnect {
         characteristic.setValue(messageBytes);
         boolean success = mGatt.writeCharacteristic(characteristic);
         Log.i(LOG_TAG, "Sending message initiated...");
+        blockingLoop(500); // Waiting for 500 ms
         return success;
+    }
+
+
+    public void blockingLoop(int recordTime) {
+        Log.i(LOG_TAG, "Waiting for " + recordTime + " milliseconds");
+        long endLoop = curTime() + recordTime;
+        while(curTime()<endLoop);
+    }
+
+    public long curTime(){
+        return System.currentTimeMillis();
     }
 
     public interface CentralConnectInterface{

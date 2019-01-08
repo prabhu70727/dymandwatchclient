@@ -46,6 +46,7 @@ import static ch.ethz.dymand.Config.isSelfReportCompleted;
 import static ch.ethz.dymand.Config.last5Mins;
 import static ch.ethz.dymand.Config.lastRecordedTime;
 import static ch.ethz.dymand.Config.logStatusFileCreated;
+import static ch.ethz.dymand.Config.makeDirectories;
 import static ch.ethz.dymand.Config.morningEndHourWeekday;
 import static ch.ethz.dymand.Config.morningStartHourWeekday;
 import static ch.ethz.dymand.Config.noSilenceDates;
@@ -53,9 +54,10 @@ import static ch.ethz.dymand.Config.noSilenceNum;
 import static ch.ethz.dymand.Config.recordedInHour;
 import static ch.ethz.dymand.Config.recordingTriggeredDates;
 import static ch.ethz.dymand.Config.recordingTriggeredNum;
+import static ch.ethz.dymand.Config.resetShouldConnect;
 import static ch.ethz.dymand.Config.scanStartDates;
 import static ch.ethz.dymand.Config.scanWasStarted;
-import static ch.ethz.dymand.Config.shouldConnect;
+import static ch.ethz.dymand.Config.setShouldConnect;
 import static ch.ethz.dymand.Config.startAdvertTriggerDates;
 import static ch.ethz.dymand.Config.startAdvertTriggerNum;
 import static ch.ethz.dymand.Config.startHourWeekend;
@@ -98,6 +100,7 @@ enum DataCollectionHour{
 public class Scheduler {
 
     private  static Scheduler instance = null; //singleton instance of class
+    private  static String subject = "/Subject_" + subjectID + "/";
     static Context  context;
     private static String dirPath;
     private static BleCallback ble;
@@ -110,7 +113,7 @@ public class Scheduler {
     private static Calendar endOf7daysDate;
 
 //    private static long minTimeBtnRecordings = 4 * 60 * 1000; //minimum time between recordings is 20 mins
-//    private static long DELAY_FOR_55_MINS = 2 * 60 * 1000; //5000; //
+//    private static long DELAY_FOR_55_MINS = 1 * 60 * 1000; //5000; //
 //    private static long DELAY_FOR_60_MINS = 5 * 60 * 1000; //10000; //
 
 //    private static long DELAY_FOR_60_MINS = 1 * 60 * 1000; //10000; //
@@ -193,7 +196,6 @@ public class Scheduler {
 
         //TODO: Remove
         logStatus();
-
 
         //Sets start time to next monday morning start time
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
@@ -303,17 +305,17 @@ public class Scheduler {
 
 
         if (hasStudyStarted){
-            //timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+            timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
 
             //TODO: remove after testing
-            timerHandler.postDelayed(timerRunnable, 5000);
+            //timerHandler.postDelayed(timerRunnable, 5000);
         }else {
 
             //TODO: remove after testing
-            timerHandler.postDelayed(timerRunnable, 5000);
+            //timerHandler.postDelayed(timerRunnable, 5000);
 
             //TODO: remove after testing
-            //timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+            timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
 
             //timerHandler.postDelayed(timerRunnable, millisUntilNextMondayStart);
         }
@@ -490,10 +492,18 @@ public class Scheduler {
 
         if (!logStatusFileCreated) {
 
+            //Create folders
+            //makeDirectories(dirPath);
+
+            //Create main folder with subject's id
+            File mainFolder = new File(dirPath+subject);
+            mainFolder.mkdirs();
+
             //Create files for logging status of app
-            logFile = new File(dirPath, "log_status_" + subjectID + ".csv");
-            errorLogFile = new File(dirPath, "error_logs_" + subjectID + ".csv");
-            bleSSFile = new File(dirPath, "ble_signal_strength_log.csv");
+            logFile = new File(dirPath, subject+ "log_status_" + subjectID + ".csv");
+            errorLogFile = new File(dirPath, subject+"error_logs_" + subjectID + ".csv");
+            bleSSFile = new File(dirPath, subject+"ble_signal_strength_log.csv");
+
             logStatusFileCreated = true;
 
             //Record that the files have been created and put in storage
@@ -535,16 +545,25 @@ public class Scheduler {
             }
         }
 
+
+        //Write system and app logs
+        Calendar cal = Calendar.getInstance();
+        int day = cal.get(Calendar.DAY_OF_WEEK)-1;
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        String log = dirPath + subject+ "logs_" + subjectID + "_Day_" + day + "_Hour_" + hour + ".csv";
+        //Runtime.getRuntime().exec(new String[]{"logcat", "-f", log, "MyAppTAG:V", "*:S"});
+        Runtime.getRuntime().exec(new String[]{"logcat", "-v", "time", "-f", log});
+
         //Check if the Files references are null. If they are, then it means the app was restarted
         //In which case, we need need to create an object reference to the file
         if (logFile == null || errorLogFile == null){
             //Create files for logging status of app
-            logFile = new File(dirPath, "log_status_" + subjectID + ".csv");
-            errorLogFile = new File(dirPath, "error_logs_" + subjectID + ".csv");
+            logFile = new File(dirPath, subject+"log_status_" + subjectID + ".csv");
+            errorLogFile = new File(dirPath, subject+"error_logs_" + subjectID + ".csv");
         }
 
         if (isCentral && (bleSSFile == null)){
-            bleSSFile = new File(dirPath, "ble_signal_strength_log.csv");
+            bleSSFile = new File(dirPath, subject+"ble_signal_strength_log.csv");
         }
 
         //Get data to log
@@ -671,10 +690,10 @@ public class Scheduler {
 
         //Check if minimum time between recordings has elapsed
         if (diff > minTimeBtnRecordings ){
-            shouldConnect = true;
+            setShouldConnect();
             return 0;
         }else{
-            shouldConnect = false;
+            resetShouldConnect();
 
             if (ble != null){
                 ble.reStartBleCallback();
@@ -696,7 +715,7 @@ public class Scheduler {
         Runnable timerRunnable = new Runnable() {
             public void run() {
                 if(ble != null) {
-                    shouldConnect = true;
+                    setShouldConnect();
                     ble.startBleCallback();
                 }
 

@@ -7,6 +7,7 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -20,6 +21,7 @@ import static ch.ethz.dymand.Config.dataCollectStartDate;
 import static ch.ethz.dymand.Config.dataCollectEndDate;
 import static ch.ethz.dymand.Config.discardDates;
 import static ch.ethz.dymand.Config.getDateNow;
+import static ch.ethz.dymand.Config.getDateNowForFilename;
 import static ch.ethz.dymand.Config.hasSelfReportBeenStarted;
 import static ch.ethz.dymand.Config.hasStartedRecording;
 import static ch.ethz.dymand.Config.isCentral;
@@ -29,9 +31,10 @@ import static ch.ethz.dymand.Config.prevLastRecordedTime;
 import static ch.ethz.dymand.Config.recordedInHour;
 import static ch.ethz.dymand.Config.recordingTriggeredDates;
 import static ch.ethz.dymand.Config.recordingTriggeredNum;
-import static ch.ethz.dymand.Config.shouldConnect;
+import static ch.ethz.dymand.Config.setShouldConnect;
 import static ch.ethz.dymand.Callbacks.WatchPhoneCommCallback;
 import static ch.ethz.dymand.Callbacks.MessageCallback;
+import static ch.ethz.dymand.Config.subjectID;
 import static ch.ethz.dymand.Config.surveyAlert1;
 import static ch.ethz.dymand.Config.surveyAlert1Date;
 import static ch.ethz.dymand.Config.surveyAlert2;
@@ -88,9 +91,35 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         if(isCentral) tag = tag+"black_";
         else tag = tag + "white_";
 
-        File recordDir = new File(context.getApplicationContext().getFilesDir().getAbsolutePath()+"/"+tag+timeStamp);
-        recordDir.mkdirs();
-        String dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath()+"/"+tag+timeStamp+"/";
+//        File recordDir = new File(context.getApplicationContext().getFilesDir().getAbsolutePath()+"/"+tag+timeStamp);
+//        recordDir.mkdirs();
+//        String dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath()+"/"+tag+timeStamp+"/";
+
+        Calendar cal = Calendar.getInstance();
+        int day = cal.get(Calendar.DAY_OF_WEEK)-1;
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+
+        String dirPath = context.getFilesDir().getAbsolutePath()+"/Subject_" + subjectID +
+                "/Day_" + day + "/Hour_" + hour + "/" + getDateNowForFilename() + "/";
+
+
+//        String dirPath = context.getFilesDir().getAbsolutePath()+"/Subject_" + subjectID + "/Day_8" + "/Hour_" + hour + "/";
+
+        File dir = new File(dirPath);
+
+        Log.i(LOG_TAG, "directory exist: " + dir.exists());
+
+        dir.mkdirs();
+
+        //Check if folder exists
+//        if (!dir.exists()){
+//
+//            Log.d(LOG_TAG, "directory does not exist");
+//            dir.mkdir();
+//        }else{
+//            Log.d(LOG_TAG, "directory exists");
+//        }
+
 
         mAudioRecorder = new BackgroundAudioRecorder(context);
         mSensorRecorder = new SensorRecorder(context);
@@ -238,7 +267,8 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                     discardDates = discardDates + getDateNow();
 
                     //Reset values
-                    shouldConnect = true;
+                    //shouldConnect = true;
+                    setShouldConnect();
                     lastRecordedTime = prevLastRecordedTime; //reset last recorded time
                     hasStartedRecording = false;
                 }else{
@@ -276,9 +306,9 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                     discardDates = discardDates + getDateNow();
 
                     //Reset values
+                    setShouldConnect();
                     hasStartedRecording = false;
                     lastRecordedTime = prevLastRecordedTime; //reset last recorded time
-                    hasStartedRecording = false;
                 }
             }
         };
@@ -314,10 +344,9 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
 
     @Override
     public void collectDataCallBack() throws FileNotFoundException {
-        //Looper.prepare();
-        if(!hasStartedRecording && !recordedInHour) {
+        //Collect data if it is not recording and the self report has not been completed
+        if(!hasStartedRecording && !isSelfReportCompleted) {
             startRecording("" + System.currentTimeMillis());
         }
-        //Looper.loop();
     }
 }

@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import ch.ethz.dymand.Sensors.SensorRecorder;
@@ -18,10 +20,11 @@ import java.util.UUID;
 
 public class Config {
     private static String LOG_TAG = "CONFIG: ";
-    public static boolean DEBUG_MODE = true;
+    public static boolean DEBUG_MODE = false;
     public static final int NOTIFICATION_ID = 71193; //ID for foreground service - can be any number except zero
     public static final String CHANNEL_ID = "DynamdNotificationServiceChannel";
 
+    public static int STUDY_DURATION = 7; //number of days for the study
     public static int HR_FREQ = 1; //Hz
     public static int ACCEL_FREQ = 20;  //Hz
     public static int GYRO_FREQ = 20; //Hz
@@ -67,12 +70,25 @@ public class Config {
     public static boolean isCentral = false;
     public static final int SYNC_BUFFER = 5 * (MINUTE/60); //To sync between central and peripheral
     public static final int threshold = -100;
+    private static final int PP_INTERVAL_SENSOR = 65547;
+    private static final int NEW_ACTIVITY_SENSOR = 65549;
+    private static final int HR_PPG_GAIN_SENSOR = 65544;
+    private static final int HR_PPG_SENSOR = 65541;
 
     public static int[] sensorList = new int[]{
             Sensor.TYPE_HEART_RATE,
             Sensor.TYPE_ACCELEROMETER,
             Sensor.TYPE_GYROSCOPE,
             Sensor.TYPE_LIGHT
+//            Sensor.TYPE_HEART_BEAT,
+//            PP_INTERVAL_SENSOR,
+//            NEW_ACTIVITY_SENSOR,
+//            HR_PPG_GAIN_SENSOR,
+//            HR_PPG_SENSOR
+//            Sensor.TYPE_LINEAR_ACCELERATION,
+//            Sensor.TYPE_STEP_COUNTER,
+//            Sensor.TYPE_STEP_DETECTOR,
+//            Sensor.TYPE_SIGNIFICANT_MOTION
     };
 
     public static HashMap<Integer,Integer> sensorPeriods= new HashMap<Integer,Integer>();
@@ -158,11 +174,26 @@ public class Config {
     public static String discardDates = "";
 
     static SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
+    static SimpleDateFormat df2 = new SimpleDateFormat("MM-dd-yyyy HH_mm_ss");
 
+    public static String oldheader = "Date Time, " +
+            "Battery Percentage, noSilenceNum, noSilenceDates,vadNum,vadDates," +
+            "surveyAlert1, surveyAlert1Date, surveyAlert2, surveyAlert2Date, surveyTriggerNum, " +
+            "surveyTriggerDate, dataCollectStartDate, dataCollectEndDate, closeEnoughNum, closeEnoughDates, " +
+            "last5Mins,advertisingStarted, advertisingStartedDates,scanWasStarted, scanStartDates,startScanTriggerNum," +
+            "startScanTriggerDates, startAdvertTriggerNum, startAdvertTriggerDates,connectedNum,connectedDates";
+
+    @NonNull
     public static String getDateNow(){
 
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
         return df.format(rightNow.getTime())  + " | ";
+    }
+
+    public static String getDateNowForFilename(){
+
+        Calendar rightNow = Calendar.getInstance(); //get calendar instance
+        return df2.format(rightNow.getTime());
     }
 
     public static void saveAppInfo(Context context){
@@ -219,12 +250,96 @@ public class Config {
         Log.d(LOG_TAG, "endHourWeekend - " + endHourWeekend);
     }
 
-    public static String oldheader = "Date Time, " +
-            "Battery Percentage, noSilenceNum, noSilenceDates,vadNum,vadDates," +
-            "surveyAlert1, surveyAlert1Date, surveyAlert2, surveyAlert2Date, surveyTriggerNum, " +
-            "surveyTriggerDate, dataCollectStartDate, dataCollectEndDate, closeEnoughNum, closeEnoughDates, " +
-            "last5Mins,advertisingStarted, advertisingStartedDates,scanWasStarted, scanStartDates,startScanTriggerNum," +
-            "startScanTriggerDates, startAdvertTriggerNum, startAdvertTriggerDates,connectedNum,connectedDates";
+    public static File getStorageLocation() {
+        File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        return root;
+    }
+
+    public static void setShouldConnect(){
+
+        Calendar rightNow = Calendar.getInstance(); //get calendar instance
+        int currentMinute = rightNow.get(Calendar.MINUTE);
+
+        //Check to make sure it's less than 10 mins to next hour
+        int minUntilNextHour = 60 - currentMinute;
+
+        if ( !(minUntilNextHour <= 10)){
+            shouldConnect = true;
+        }
+    }
+
+    public static boolean shouldConnectStatus(){
+        return shouldConnect;
+    }
+
+    public static void resetShouldConnect(){
+        shouldConnect = false;
+    }
+
+    /* Checks if external storage is available for read and write */
+    public static void isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            Log.d(LOG_TAG, "external storage unvailable");
+        }else{
+            Log.d(LOG_TAG, "external storage vailable");
+        }
+    }
+
+    public static void makeDirectories(String dirPath){
+        Log.d(LOG_TAG, "making directories...");
+
+        int WEEKEND_START = 6;
+        int HOURS_IN_DAY = 24;
+
+        //Create main folder with subject's id
+        //File mainFolder = new File(getStorageLocation()+"/Subject_" + subjectID);
+        String subject = "/Subject_" + subjectID;
+        File mainFolder = new File(dirPath+subject);
+
+//        if(!mainFolder.mkdirs()){
+//            Log.d(LOG_TAG, "could not create  directories");
+//        }else{
+//            Log.d(LOG_TAG, "created  directories");
+//        }
+        mainFolder.mkdirs();
+
+        File subFolder = null;
+        String day = "";
+
+        //Create folders for the 7 days
+        for (int i = 1; i <= STUDY_DURATION; i++){
+            day = "/Day_" + i;
+            subFolder = new File(dirPath + subject + day);
+            subFolder.mkdir();
+
+            //Create sub folders for the weekday hours
+            if (i < WEEKEND_START){
+
+                for (int currentHour = 1; currentHour <=HOURS_IN_DAY; currentHour++){
+                    //Log.d(LOG_TAG, "Weekday, Day " + i + " , " + "Hour " + currentHour);
+                    if ((currentHour >= morningStartHourWeekday && currentHour <= morningEndHourWeekday) ||
+                    (currentHour >= eveningStartHourWeekday && currentHour <= eveningEndHourWeekday)){
+
+                        subFolder = new File(dirPath  + subject + day+ "/Hour_" + currentHour);
+                        subFolder.mkdir();
+                    }
+
+                }
+
+            //Create sub folders for the weekend hours
+            }else {
+                for (int currentHour = 1; currentHour <=HOURS_IN_DAY; currentHour++) {
+                    //Log.d(LOG_TAG, "Weekend, Day " + i + " , " + "Hour " + currentHour);
+                    if (currentHour >= startHourWeekend && currentHour <= endHourWeekend) {
+                        subFolder = new File(dirPath  + subject + day + "/Hour_" + currentHour);
+                        subFolder.mkdir();
+                    }
+                }
+            }
+        }
+
+    }
 
     public static String createLogHeader(){
         StringBuilder headerBuff = new StringBuilder();

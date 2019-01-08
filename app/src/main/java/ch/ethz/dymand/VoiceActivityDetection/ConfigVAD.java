@@ -3,14 +3,15 @@ package ch.ethz.dymand.VoiceActivityDetection;
 public class ConfigVAD {
 
     //VAD Constants
+    public static final double DEVICE_NOISE_LEVEL = 0.01; //the level of noise by device
     public static final int FRAME_SIZE_MS = 25; // each frame is 25ms
-    public static final double ENERGY_THRESHOLD = 500; //If energy is above this threshold, then the should sample is no silence
+    public static final double RMS_THRESHOLD = 0.002; //If energy is above this threshold, then the should sample is no silence
     public static final int NO_OF_SECONDS = 5; //5 seconds
     public static final int FREQUENCY = 8000; //8kHz
     public static final int SAMPLES_PER_FRAME = (FRAME_SIZE_MS * FREQUENCY)/1000; //(8000*25)/100 or 8*25 = 200 samples
     public static final int WINDOW_SIZE = FREQUENCY * NO_OF_SECONDS; //8000*5 = 40,000
     public static final int VOICE_THRESHOLD = (WINDOW_SIZE/SAMPLES_PER_FRAME)/2; //(40,000/200)/2; //threshold for deciding classification of window is half the total count
-    public static int FIRST_N_SAMPLES_DISCARDED = (int)(0.1*WINDOW_SIZE); //discard the first 10% of values during the energy calculation because of blip when microphone starts
+    public static int FIRST_N_SAMPLES_DISCARDED = 9000; //(int)(0.1*WINDOW_SIZE); //discard the first 10% of values during the energy calculation because of blip when microphone starts
 
     //Speech Classification Constants
     static boolean shouldNormalize = true;

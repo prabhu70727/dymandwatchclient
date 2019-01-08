@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static ch.ethz.dymand.Config.getDateNow;
+
 public class SensorRecorder implements SensorEventListener{
     private static final String LOG_TAG = "Logs: SensorRecorder";
     private static final int SENSOR_DELAY = Config.SENSOR_DELAY;
@@ -35,33 +37,49 @@ public class SensorRecorder implements SensorEventListener{
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        currentTime = System.currentTimeMillis();
-        long diff = currentTime - prevTime;
-
         String sensorName = event.sensor.getStringType();
-        int sensorType = event.sensor.getType();
-        StringBuilder toTrack = new StringBuilder(diff + "," + event.timestamp+","+event.accuracy);
+        StringBuilder toTrack = new StringBuilder(getDateNow() + "," + event.timestamp+","+event.accuracy);
 
-        //Update values at the specified sampling rate
-        int periodMillis = (Config.sensorPeriods.get(sensorType))/1000;
-
-        //Check if the time passed is more than period
-        if (diff > periodMillis){
-
-            //Get values from sensor
-            for(int i=0; i<event.values.length; i++) {
-                toTrack.append("," + event.values[i]);
-            }
-
-            Log.i(LOG_TAG, sensorName + "," + toTrack.toString());
-
-            //append new data sample
-            mSensorIndex.get(sensorName+extension).append(toTrack.toString()+"\n");
-
-            //Update previous time
-            prevTime = currentTime;
+        //Get values from sensor
+        for(int i=0; i<event.values.length; i++) {
+            toTrack.append("," + event.values[i]);
         }
+
+        //Log.i(LOG_TAG, sensorName + "," + toTrack.toString());
+
+        //append new data sample
+        mSensorIndex.get(sensorName+extension).append(toTrack.toString()+"\n");
     }
+
+//    @Override
+//    public void onSensorChanged(SensorEvent event) {
+//        currentTime = System.currentTimeMillis();
+//        long diff = currentTime - prevTime;
+//
+//        String sensorName = event.sensor.getStringType();
+//        int sensorType = event.sensor.getType();
+//        StringBuilder toTrack = new StringBuilder(diff + "," + event.timestamp+","+event.accuracy);
+//
+//        //Update values at the specified sampling rate
+//        int periodMillis = (Config.sensorPeriods.get(sensorType))/1000;
+//
+//        //Check if the time passed is more than period
+//        if (diff > periodMillis){
+//
+//            //Get values from sensor
+//            for(int i=0; i<event.values.length; i++) {
+//                toTrack.append("," + event.values[i]);
+//            }
+//
+//            Log.i(LOG_TAG, sensorName + "," + toTrack.toString());
+//
+//            //append new data sample
+//            mSensorIndex.get(sensorName+extension).append(toTrack.toString()+"\n");
+//
+//            //Update previous time
+//            prevTime = currentTime;
+//        }
+//    }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -115,8 +133,11 @@ public class SensorRecorder implements SensorEventListener{
                 StringBuilder init = new StringBuilder("");
                 mSensorIndex.put(file.getName(), init);
 
-                sensorPeriod = Config.sensorPeriods.get(sensorType);
-                mSensorManager.registerListener(this, sensor, sensorPeriod);
+//                sensorPeriod = Config.sensorPeriods.get(sensorType);
+                //mSensorManager.registerListener(this, sensor, sensorPeriod);
+
+                //Setting sampling frequency as fastest provided by Android
+                mSensorManager.registerListener(this, sensor, SENSOR_DELAY);
                 Log.i(LOG_TAG, "Started sensor "+sensorName+ " and recording");
             }else {
                 Log.i(LOG_TAG, "Sensor of type "+ sensorType +" not available.");
