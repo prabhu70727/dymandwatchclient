@@ -119,6 +119,7 @@ public class Scheduler {
     private static long DELAY_FOR_55_MINS = 44 * 60 * 1000; //5000; //
     private static long DELAY_FOR_60_MINS = 60 * 60 * 1000; //10000; //
     private static Calendar endOf7daysDate;
+    private static Calendar nextMondayDate;
 
 //    private static long minTimeBtnRecordings = 4 * 60 * 1000; //minimum time between recordings is 20 mins
 //    private static long DELAY_FOR_55_MINS = 1 * 60 * 1000; //5000; //
@@ -201,32 +202,58 @@ public class Scheduler {
      * Set to start the next Monday at the morning start time
      */
     public void startHourlyTimer() throws IOException {
+        long millisUntilNextHour = 0;
+        long millisUntilNextMondayStart = 0;
 
         //TODO: Remove
         logStatus();
 
-        //Sets start time to next monday morning start time
+        //Get current date
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
         int today = rightNow.get(Calendar.DAY_OF_WEEK);
-        int daysUntilNextMonday = 8;
 
-        if (today !=  Calendar.MONDAY) {
-            daysUntilNextMonday =(Calendar.SATURDAY - today + 2) % 7; //the 2 is the difference between Saturday and Monday
+        //Set next Monday date only once when the app is started
+        if (!hasStudyStarted) {
+            //Sets start time to next monday morning start time
+            int daysUntilNextMonday = 8;
+
+            if (today != Calendar.MONDAY) {
+                daysUntilNextMonday = (Calendar.SATURDAY - today + 2) % 7; //the 2 is the difference between Saturday and Monday
+            }
+
+            nextMondayDate = Calendar.getInstance();
+            nextMondayDate.add(Calendar.DAY_OF_YEAR, daysUntilNextMonday);
+            nextMondayDate.set(Calendar.HOUR_OF_DAY, morningStartHourWeekday);
+            nextMondayDate.set(Calendar.MINUTE, 0);
+            nextMondayDate.set(Calendar.SECOND, 0);
+            millisUntilNextMondayStart = nextMondayDate.getTimeInMillis() - rightNow.getTimeInMillis();
+
+            //Save Monday date to storarage so it can retrieved later
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            int dayOfNextMonday = nextMondayDate.get(Calendar.DAY_OF_YEAR);
+            editor.putInt("dayOfNextMonday", dayOfNextMonday);
+
+
+        }else{
+            //Get info about next Monday date from storage
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+            int dayOfNextMonday = sharedPref.getInt("dayOfNextMonday", 1);
+
+            //Then recreate the date object
+            nextMondayDate = Calendar.getInstance();
+            nextMondayDate.set(Calendar.DAY_OF_YEAR, dayOfNextMonday);
+            nextMondayDate.set(Calendar.HOUR_OF_DAY, morningStartHourWeekday);
+            nextMondayDate.set(Calendar.MINUTE, 0);
+            nextMondayDate.set(Calendar.SECOND, 0);
         }
-
-        nextMondayDate = Calendar.getInstance();
-        nextMondayDate.add(Calendar.DAY_OF_YEAR,daysUntilNextMonday);
-        nextMondayDate.set(Calendar.HOUR_OF_DAY,morningStartHourWeekday);
-        nextMondayDate.set(Calendar.MINUTE, 0);
-        nextMondayDate.set(Calendar.SECOND, 0);
-        long millisUntilNextMondayStart = nextMondayDate.getTimeInMillis()- rightNow.getTimeInMillis();
 
         //Sets start time to next hour start time
         Calendar nextHour = Calendar.getInstance();
         nextHour.add(Calendar.HOUR_OF_DAY,1);
         nextHour.set(Calendar.MINUTE, 0);
         nextHour.set(Calendar.SECOND, 0);
-        long millisUntilNextHour = nextHour.getTimeInMillis()- rightNow.getTimeInMillis();
+        millisUntilNextHour = nextHour.getTimeInMillis()- rightNow.getTimeInMillis();
 
         //Set end of 7 days date
         endOf7daysDate = (Calendar) nextMondayDate.clone();
@@ -718,7 +745,7 @@ public class Scheduler {
         //In which case, we need need to create an object reference to the file before writing to it
         if (beforeStudylogFile == null){
             //Create file reference for logging
-            beforeStudylogFile = new File(dirPath, subject + "before_study_log" + subjectID + ".csv");
+            beforeStudylogFile = new File(dirPath, subject + "before_study_log_" + subjectID + ".csv");
         }
 
         //Get data to log
@@ -752,6 +779,7 @@ public class Scheduler {
 
         //Check which hour it is
         DataCollectionHour hour = checkHour();
+        Log.d("Scheduler", "Current hour is " + hour);
 
         switch (hour){
             case BEFORE_START:
@@ -892,15 +920,19 @@ public class Scheduler {
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
 
         //Check if it's before study starts
-        if (rightNow.get(Calendar.DAY_OF_YEAR) < nextMondayDate.get(Calendar.DAY_OF_YEAR) &&
-                rightNow.get(Calendar.HOUR_OF_DAY) < nextMondayDate.get(Calendar.HOUR_OF_DAY)){
-            return BEFORE_START;
+        if ((rightNow.get(Calendar.DAY_OF_YEAR) < nextMondayDate.get(Calendar.DAY_OF_YEAR)) ||  //day is before day of study
+                (rightNow.get(Calendar.DAY_OF_YEAR) == nextMondayDate.get(Calendar.DAY_OF_YEAR) &&  //same day of study
+                        (rightNow.get(Calendar.HOUR_OF_DAY) < nextMondayDate.get(Calendar.HOUR_OF_DAY)))){  //and hour before study start hour
+            hour = BEFORE_START;
+            return hour;
         }
 
         //Check if end of 7 days
         if (endOf7daysDate.get(Calendar.DAY_OF_YEAR) == rightNow.get(Calendar.DAY_OF_YEAR) &&
                 endOf7daysDate.get(Calendar.HOUR_OF_DAY) == rightNow.get(Calendar.HOUR_OF_DAY) ){
-            return END_OF_7_DAYS;
+
+            hour = END_OF_7_DAYS;
+            return hour;
         }
 
         //Check if today is a weekday
@@ -939,7 +971,7 @@ public class Scheduler {
             }
         }
 
-        Log.d("Scheduler", "Current hour is " + hour);
+        //Log.d("Scheduler", "Current hour is " + hour);
 
         return hour;
 

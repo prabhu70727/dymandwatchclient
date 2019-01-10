@@ -95,9 +95,12 @@ public class GetVoiceSampleActivity extends WearableActivity {
         int hour = cal.get(Calendar.HOUR_OF_DAY);
 
         String dirPath = getApplicationContext().getFilesDir().getAbsolutePath()+"/Subject_" + subjectID +
-                "/Day_" + day + "/Hour_" + hour + "/" + getDateNowForFilename() + "/";
+                "/Voice_Sample/" +"/Day_" + day + "/Hour_" + hour + "/" + getDateNowForFilename() + "/";
 
-//        String dirPath = getApplicationContext().getFilesDir().getAbsolutePath()+"/Subject_" + subjectID + "/Day_8" + "/Hour_" + hour + "/";
+
+        //        String dirPath = getApplicationContext().getFilesDir().getAbsolutePath()+"/Subject_" + subjectID +
+        //                "/Day_" + day + "/Hour_" + hour + "/" + getDateNowForFilename() + "/";
+        //        String dirPath = getApplicationContext().getFilesDir().getAbsolutePath()+"/Subject_" + subjectID + "/Day_8" + "/Hour_" + hour + "/";
 
         File dir = new File(dirPath);
 
