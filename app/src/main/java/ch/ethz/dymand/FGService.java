@@ -49,6 +49,10 @@ public class FGService extends Service implements Callbacks.MessageCallback {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        Log.i(LOG_TAG, "In onCreate: Service Started");
+        Toast.makeText(this, "Service Started", Toast.LENGTH_SHORT).show();
+
 //        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
 //        PowerManager.WakeLock lockLocal = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
 //                "MyApp::MyWakelockTag");
@@ -83,6 +87,8 @@ public class FGService extends Service implements Callbacks.MessageCallback {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
 
+        Log.i(LOG_TAG, "In onStart Command");
+        Toast.makeText(this, "In onStart Command", Toast.LENGTH_SHORT).show();
 
         Notification notification = null;
         Intent notificationIntent = new Intent(this, SetupCompleteActivity.class);
@@ -125,6 +131,7 @@ public class FGService extends Service implements Callbacks.MessageCallback {
 
         //If set up is complete, get saved data
         if (isSetupComplete){
+            Log.d(LOG_TAG, "Seup is complete");
             getStoredAppData(this);
         }else{
             //Start set up process and kill service

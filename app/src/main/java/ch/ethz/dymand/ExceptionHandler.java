@@ -4,6 +4,8 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
+import android.widget.Toast;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -22,6 +24,7 @@ import static ch.ethz.dymand.Config.noOfExceptionsInHour;
 public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
 
     private Context contxt;
+    private String LOG_TAG = "ExceptionHandler";
 
     public ExceptionHandler(Context context){
         contxt = context;
@@ -30,6 +33,9 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
     @Override
     public void uncaughtException(Thread t, Throwable e) {
 
+        Log.i(LOG_TAG, "Exception Caught");
+        Toast.makeText(contxt, "Service Detroyed!", Toast.LENGTH_SHORT).show();
+
         noOfExceptionsInHour++; //increment number of exceptions
 
         Intent intent = new Intent(contxt,MainActivity.class);
@@ -37,7 +43,7 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
         PendingIntent pendingIntent = PendingIntent.getActivity(contxt, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
         AlarmManager alarmManager = (AlarmManager) contxt.getSystemService(Context.ALARM_SERVICE);
-        //alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 10000, pendingIntent);
+        alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 10000, pendingIntent);
 
         StringWriter stackTrace = new StringWriter();
         e.printStackTrace( new PrintWriter(stackTrace));
@@ -63,6 +69,12 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
             }
         }
 
-        //System.exit(2);
+        Intent mService = new Intent(contxt, FGService.class);
+        contxt.stopService(mService);
+
+        //contxt.startService(mService);
+//
+        android.os.Process.killProcess(android.os.Process.myPid());
+        System.exit(2);
     }
 }

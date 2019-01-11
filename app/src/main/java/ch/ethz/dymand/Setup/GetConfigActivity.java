@@ -33,10 +33,10 @@ public class GetConfigActivity extends WearableActivity {
         setAmbientEnabled();
     }
 
-    @Override
-    public void onBackPressed() {
-        // do not go to previous activity.
-    }
+//    @Override
+//    public void onBackPressed() {
+//        // do not go to previous activity.
+//    }
 
     public void receiveButtonPressed(View view) {
         mButton = (Button) findViewById(R.id.receive_button);

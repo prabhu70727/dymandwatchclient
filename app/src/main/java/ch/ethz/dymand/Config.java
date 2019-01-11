@@ -114,9 +114,9 @@ public class Config {
     public static int morningStartHourWeekday = 8;
     public static int morningEndHourWeekday = 10;
     public static int eveningStartHourWeekday = 18;
-    public static int eveningEndHourWeekday = 22;
+    public static int eveningEndHourWeekday = 23;
     public static int startHourWeekend = 9;
-    public static int endHourWeekend = 22;
+    public static int endHourWeekend = 23;
     public static boolean isSelfReportCompleted = false;
     public static boolean hasSelfReportBeenStarted = false;
     public static boolean configReceived = true;
