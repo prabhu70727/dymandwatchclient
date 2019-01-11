@@ -26,7 +26,7 @@ public class BlutoothSetupActivity extends WearableActivity {
 
     private static final String LOG_TAG = "Logs: SetupActivity_Old";
     Intent mService = null;
-    BluetoothCentral mbluetoothCentral;
+    //BluetoothCentral mbluetoothCentral;
     private Handler mHandler;
 
     @Override
@@ -36,7 +36,7 @@ public class BlutoothSetupActivity extends WearableActivity {
         //getServiceNames();
         // Enables Always-on
 
-        mbluetoothCentral = new BluetoothCentral(this);
+        /*mbluetoothCentral = new BluetoothCentral(this);
         mbluetoothCentral.scan();
 
         mHandler = new Handler();
@@ -44,7 +44,7 @@ public class BlutoothSetupActivity extends WearableActivity {
             public void run() {
                 mbluetoothCentral.stop();
             }
-        },2000);
+        },2000);*/
 
         setAmbientEnabled();
     }
