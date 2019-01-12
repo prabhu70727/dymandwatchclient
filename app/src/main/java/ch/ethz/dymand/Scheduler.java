@@ -2,6 +2,7 @@ package ch.ethz.dymand;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.os.Handler;
@@ -19,15 +20,18 @@ import java.util.Date;
 
 import static android.content.Context.BATTERY_SERVICE;
 import static android.content.Context.VIBRATOR_SERVICE;
+import static ch.ethz.dymand.Config.MILLIS;
 import static ch.ethz.dymand.Config.advertisingStarted;
 import static ch.ethz.dymand.Config.advertisingStartedDates;
 import static ch.ethz.dymand.Config.batteryPercentage;
+import static ch.ethz.dymand.Config.beforeStudylogFile;
 import static ch.ethz.dymand.Config.closeEnoughDates;
 import static ch.ethz.dymand.Config.closeEnoughNum;
 import static ch.ethz.dymand.Config.collectDataDates;
 import static ch.ethz.dymand.Config.collectDataNum;
 import static ch.ethz.dymand.Config.connectedDates;
 import static ch.ethz.dymand.Config.connectedNum;
+import static ch.ethz.dymand.Config.createLogHeader;
 import static ch.ethz.dymand.Config.dataCollectEndDate;
 import static ch.ethz.dymand.Config.dataCollectStartDate;
 import static ch.ethz.dymand.Config.discardDates;
@@ -40,6 +44,7 @@ import static ch.ethz.dymand.Config.hasLogFileBeenCreated;
 import static ch.ethz.dymand.Config.hasSelfReportBeenStarted;
 import static ch.ethz.dymand.Config.hasStartedRecording;
 import static ch.ethz.dymand.Config.hasStudyStarted;
+import static ch.ethz.dymand.Config.isBeforeStudyLogFileCreated;
 import static ch.ethz.dymand.Config.isCentral;
 import static ch.ethz.dymand.Config.isDemoComplete;
 import static ch.ethz.dymand.Config.isSelfReportCompleted;
@@ -49,6 +54,8 @@ import static ch.ethz.dymand.Config.logStatusFileCreated;
 import static ch.ethz.dymand.Config.makeDirectories;
 import static ch.ethz.dymand.Config.morningEndHourWeekday;
 import static ch.ethz.dymand.Config.morningStartHourWeekday;
+import static ch.ethz.dymand.Config.nextMondayDate;
+import static ch.ethz.dymand.Config.noOfExceptionsInHour;
 import static ch.ethz.dymand.Config.noSilenceDates;
 import static ch.ethz.dymand.Config.noSilenceNum;
 import static ch.ethz.dymand.Config.recordedInHour;
@@ -75,6 +82,7 @@ import static ch.ethz.dymand.Config.surveyTriggerNum;
 import static ch.ethz.dymand.Config.vadDates;
 import static ch.ethz.dymand.Config.vadNum;
 import static ch.ethz.dymand.Config.bleSSFile;
+import static ch.ethz.dymand.DataCollectionHour.BEFORE_START;
 import static ch.ethz.dymand.DataCollectionHour.COLLECT_DATA;
 import static ch.ethz.dymand.DataCollectionHour.END;
 import static ch.ethz.dymand.DataCollectionHour.END_OF_7_DAYS;
@@ -91,6 +99,7 @@ enum DataCollectionHour{
     COLLECT_DATA, //hours during which data should be collected
     END_OF_DAY, //end of data hour
     END_OF_7_DAYS, //end of 7 days
+    BEFORE_START, //before start of study
     NONE //none of them
 }
 
@@ -99,6 +108,7 @@ enum DataCollectionHour{
  */
 public class Scheduler {
 
+    private String LOG_TAG = "Scheduler";
     private  static Scheduler instance = null; //singleton instance of class
     private  static String subject = "/Subject_" + subjectID + "/";
     static Context  context;
@@ -111,6 +121,7 @@ public class Scheduler {
     private static long DELAY_FOR_55_MINS = 44 * 60 * 1000; //5000; //
     private static long DELAY_FOR_60_MINS = 60 * 60 * 1000; //10000; //
     private static Calendar endOf7daysDate;
+    private static Calendar nextMondayDate;
 
 //    private static long minTimeBtnRecordings = 4 * 60 * 1000; //minimum time between recordings is 20 mins
 //    private static long DELAY_FOR_55_MINS = 1 * 60 * 1000; //5000; //
@@ -193,35 +204,66 @@ public class Scheduler {
      * Set to start the next Monday at the morning start time
      */
     public void startHourlyTimer() throws IOException {
+        long millisUntilNextHour = 0;
+        long millisUntilNextMondayStart = 0;
 
-        //TODO: Remove
-        logStatus();
+        //Create files with headers
+        createFilesWithHeaders();
 
-        //Sets start time to next monday morning start time
+        //Get current date
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
         int today = rightNow.get(Calendar.DAY_OF_WEEK);
-        int daysUntilNextMonday = 8;
 
-        if (today !=  Calendar.MONDAY) {
-            daysUntilNextMonday =(Calendar.SATURDAY - today + 2) % 7; //the 2 is the difference between Saturday and Monday
+        //Set next Monday date only once when the app is started
+        if (!hasStudyStarted) {
+            //Sets start time to next monday morning start time
+            int daysUntilNextMonday = 8;
+
+            if (today != Calendar.MONDAY) {
+                daysUntilNextMonday = (Calendar.SATURDAY - today + 2) % 7; //the 2 is the difference between Saturday and Monday
+            }
+
+            nextMondayDate = Calendar.getInstance();
+            nextMondayDate.add(Calendar.DAY_OF_YEAR, daysUntilNextMonday);
+            nextMondayDate.set(Calendar.HOUR_OF_DAY, morningStartHourWeekday);
+            nextMondayDate.set(Calendar.MINUTE, 0);
+            nextMondayDate.set(Calendar.SECOND, 0);
+            millisUntilNextMondayStart = nextMondayDate.getTimeInMillis() - rightNow.getTimeInMillis();
+
+            //Save Monday date to storarage so it can retrieved later
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            int dayOfNextMonday = nextMondayDate.get(Calendar.DAY_OF_YEAR);
+            editor.putInt("dayOfNextMonday", dayOfNextMonday);
+
+
+        }else{
+            //Get info about next Monday date from storage
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+            int dayOfNextMonday = sharedPref.getInt("dayOfNextMonday", 1);
+
+            //Then recreate the date object
+            nextMondayDate = Calendar.getInstance();
+            nextMondayDate.set(Calendar.DAY_OF_YEAR, dayOfNextMonday);
+            nextMondayDate.set(Calendar.HOUR_OF_DAY, morningStartHourWeekday);
+            nextMondayDate.set(Calendar.MINUTE, 0);
+            nextMondayDate.set(Calendar.SECOND, 0);
+
+            //Test
         }
 
-        Calendar nextMondayDate = Calendar.getInstance();
+        //Sets start time to next hour start time
         Calendar nextHour = Calendar.getInstance();
         nextHour.add(Calendar.HOUR_OF_DAY,1);
         nextHour.set(Calendar.MINUTE, 0);
         nextHour.set(Calendar.SECOND, 0);
-        long millisUntilNextHour = nextHour.getTimeInMillis()- rightNow.getTimeInMillis();
-
-        nextMondayDate.add(Calendar.DAY_OF_YEAR,daysUntilNextMonday);
-        nextMondayDate.set(Calendar.HOUR_OF_DAY,morningStartHourWeekday);
-        nextMondayDate.set(Calendar.MINUTE, 0);
-        nextMondayDate.set(Calendar.SECOND, 0);
-        long millisUntilNextMondayStart = nextMondayDate.getTimeInMillis()- rightNow.getTimeInMillis();
+        millisUntilNextHour = nextHour.getTimeInMillis()- rightNow.getTimeInMillis();
 
         //Set end of 7 days date
         endOf7daysDate = (Calendar) nextMondayDate.clone();
         endOf7daysDate.add(Calendar.DAY_OF_YEAR,7);
+
+        //endOf7daysDate = (Calendar) rightNow.clone();
 
         //test
         //nextMondayDate.add(Calendar.MINUTE, 1);
@@ -231,10 +273,10 @@ public class Scheduler {
         SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
         Log.d("Scheduler", "Today: " + today);
         Log.d("Scheduler", "Current date: " + df.format(rightNow.getTime()));
-        Log.d("Scheduler", "Next monday date: " + df.format(nextMondayDate.getTime()));
+        Log.d("Scheduler", "Next xmonday date: " + df.format(nextMondayDate.getTime()));
         Log.d("Scheduler", "End of 7 days  date: " + df.format(endOf7daysDate.getTime()));
-        Log.d("Scheduler", "Seconds till next monday is: " + millisUntilNextMondayStart/1000);
-        Log.d("Scheduler", "Hours till next monday is: " + millisUntilNextMondayStart/(1000*60*60));
+        Log.d("Scheduler", "Total Seconds till next monday is: " + millisUntilNextMondayStart/1000);
+        Log.d("Scheduler", "Total Hours till next monday is: " + millisUntilNextMondayStart/(1000*60*60));
 
         Log.d("Scheduler", "Next hour date: " + df.format(nextHour.getTime()));
         Log.d("Scheduler", "Minutes till next hour: " + millisUntilNextHour/(1000*60));;
@@ -274,17 +316,10 @@ public class Scheduler {
                 }
 
                 try {
-                    logStatus();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-
-
-
-                try {
                     runEachHourly();
                 } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
 
@@ -297,28 +332,35 @@ public class Scheduler {
 
                 timerHandler.postDelayed(this, DELAY_FOR_60_MINS);
 
+
                 //Test
-                //throw new NullPointerException();
+//                Log.i(LOG_TAG, "Throwing Exception");
+//                throw new NullPointerException();
+
             }
         };
 
 
 
-        if (hasStudyStarted){
-            timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+        timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
 
-            //TODO: remove after testing
-            //timerHandler.postDelayed(timerRunnable, 5000);
-        }else {
+//        if (hasStudyStarted){
+//            timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+//
+//            //TODO: remove after testing
+//            //timerHandler.postDelayed(timerRunnable, 5000);
+//        }else {
+//
+//            //TODO: remove after testing
+//            //timerHandler.postDelayed(timerRunnable, 5000);
+//
+//            timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
+//
+//            //timerHandler.postDelayed(timerRunnable, millisUntilNextMondayStart);
+//        }
 
-            //TODO: remove after testing
-            //timerHandler.postDelayed(timerRunnable, 5000);
-
-            //TODO: remove after testing
-            timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
-
-            //timerHandler.postDelayed(timerRunnable, millisUntilNextMondayStart);
-        }
+        //TODO: Remove
+        //logBeforeStudyStart();
 
     }
 
@@ -435,7 +477,9 @@ public class Scheduler {
         outputString.append(",");
 
         outputString.append(discardDates);
+        outputString.append(",");
 
+        outputString.append(noOfExceptionsInHour);
         outputString.append("\n");
 
         //Reset previous hour's status info
@@ -484,9 +528,122 @@ public class Scheduler {
     }
 
     /**
-     * Logs status of app over the past 1 hour to file
+     * Creates string containing info about duration until study starts
+     * @return logString
      */
-    public static void logStatus() throws IOException {
+    private static String createBeforeStudyLogString(){
+        //Create string to log
+        StringBuilder outputString = new StringBuilder();
+
+        //Get battery info
+        BatteryManager bm = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
+        batteryPercentage = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+
+        //Get date info
+        SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
+        Calendar rightNow = Calendar.getInstance(); //get calendar instance
+
+        //Get duration until next Monday
+
+        int SECONDS_IN_DAYS = 24*60*60;
+        int SECONDS_IN_HOURS = 60*60;
+        int SECONDS_IN_MINUTES = 60;
+
+        long millisUntilNextMondayStart = nextMondayDate.getTimeInMillis()- rightNow.getTimeInMillis();
+//        int secondsUntilNextMonday = (int) millisUntilNextMondayStart/MILLIS;
+//        int minutesUntilNextMonday = secondsUntilNextMonday/60;
+//        int hoursUntilNextMonday = minutesUntilNextMonday/60;
+//        int daysUntilNextMonday = hoursUntilNextMonday/24;
+
+        int totalSecondsUntilNextMonday = (int) millisUntilNextMondayStart/MILLIS;
+        int daysUntilNextMonday = totalSecondsUntilNextMonday/SECONDS_IN_DAYS;
+
+        int remainingHoursExpressedInSeconds = totalSecondsUntilNextMonday%SECONDS_IN_DAYS;
+        int hoursUntilNextMonday = remainingHoursExpressedInSeconds/SECONDS_IN_HOURS;
+
+        int remainingMinutesExpressedInSeconds = remainingHoursExpressedInSeconds%SECONDS_IN_HOURS;
+        int minutesUntilNextMonday = remainingMinutesExpressedInSeconds/SECONDS_IN_MINUTES;
+
+        int secondsUntilNextMonday = remainingMinutesExpressedInSeconds%SECONDS_IN_MINUTES;
+
+        Log.d("Scheduler", "Log Information Before Study Starts");
+        Log.d("Scheduler", "millisUntilNextMondayStart " + millisUntilNextMondayStart);
+        Log.d("Scheduler", "totalSecondsUntilNextMonday " + totalSecondsUntilNextMonday);
+        Log.d("Scheduler", "remainingHoursExpressedInSeconds " + remainingHoursExpressedInSeconds);
+        Log.d("Scheduler", "remainingMinutesExpressedInSeconds " + totalSecondsUntilNextMonday);
+
+        Log.d("Scheduler", "Current date: " + df.format(rightNow.getTime()));
+        Log.d("Scheduler", "Next monday date: " + df.format(nextMondayDate.getTime()));
+        Log.d("Scheduler", "End of 7 days  date: " + df.format(endOf7daysDate.getTime()));
+        Log.d("Scheduler", "Remaining days till next monday is: " + daysUntilNextMonday );
+        Log.d("Scheduler", "Remaining hours till next monday is: " + hoursUntilNextMonday);
+        Log.d("Scheduler", "Remaining minutes till next monday is: " + minutesUntilNextMonday);
+        Log.d("Scheduler", "Remaining seconds till next monday is: " + secondsUntilNextMonday);
+
+        //Create String
+        outputString.append(df.format(rightNow.getTime()));
+        outputString.append(",");
+
+        outputString.append(batteryPercentage);
+        outputString.append(",");
+
+        outputString.append(daysUntilNextMonday);
+        outputString.append(",");
+
+        outputString.append(hoursUntilNextMonday);
+        outputString.append(",");
+
+        outputString.append(minutesUntilNextMonday);
+        outputString.append(",");
+
+        outputString.append(secondsUntilNextMonday);
+        outputString.append(",");
+
+        outputString.append(noOfExceptionsInHour);
+        outputString.append("\n");
+
+        String logString = outputString.toString();
+        return logString;
+    }
+
+    /**
+     * Logs errors
+     * @throws IOException
+     */
+    public static void logErrors() throws IOException {
+        //Write system and app logs
+        Calendar cal = Calendar.getInstance();
+        int day = cal.get(Calendar.DAY_OF_WEEK)-1;
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int week = cal.get(Calendar.WEEK_OF_YEAR);
+
+        String log = dirPath + subject+ "logs_" + subjectID + "_Week_" + week + "_Day_" + day + "_Hour_" + hour + ".csv";
+        //Runtime.getRuntime().exec(new String[]{"logcat", "-f", log, "MyAppTAG:V", "*:S"});
+        Runtime.getRuntime().exec(new String[]{"logcat", "-v", "time", "-f", log});
+
+        //Check if the Files references are null. If they are, then it means the app was restarted
+        //In which case, we need need to create an object reference to the file
+        if (errorLogFile == null){
+            //Create files for logging status of app
+            errorLogFile = new File(dirPath, subject+"error_logs_" + subjectID + ".csv");
+        }
+
+        //Write status info to file
+        FileOutputStream errorLogStream = new FileOutputStream(errorLogFile, true);
+
+        try {
+            errorLogStream.write(errorLogs.getBytes());
+        } finally {
+            errorLogStream.close();
+        }
+
+    }
+
+    /**
+     * Creates log files and adds headers to them
+     * @throws FileNotFoundException
+     */
+    public static void createFilesWithHeaders() throws IOException {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         logStatusFileCreated = sharedPref.getBoolean("hasLogFileBeenCreated", false);
 
@@ -521,7 +678,7 @@ public class Scheduler {
             }
 
 
-            String header = Config.createLogHeader();
+            String header = createLogHeader();
             String log = "Subject ID: " + subjectID + "\n" + header + "\n";
             String errorLogHeader = "Subject ID: " + subjectID + "\n";
             String bleLogHeader = "Subject ID: " + subjectID + "\n" + "Date,Signal Strength" + "\n";
@@ -544,22 +701,17 @@ public class Scheduler {
 
             }
         }
+    }
 
-
-        //Write system and app logs
-        Calendar cal = Calendar.getInstance();
-        int day = cal.get(Calendar.DAY_OF_WEEK)-1;
-        int hour = cal.get(Calendar.HOUR_OF_DAY);
-        String log = dirPath + subject+ "logs_" + subjectID + "_Day_" + day + "_Hour_" + hour + ".csv";
-        //Runtime.getRuntime().exec(new String[]{"logcat", "-f", log, "MyAppTAG:V", "*:S"});
-        Runtime.getRuntime().exec(new String[]{"logcat", "-v", "time", "-f", log});
-
+    /**
+     * Logs status of app over the past 1 hour to file
+     */
+    public static void logStatus() throws IOException {
         //Check if the Files references are null. If they are, then it means the app was restarted
         //In which case, we need need to create an object reference to the file
-        if (logFile == null || errorLogFile == null){
+        if (logFile == null){
             //Create files for logging status of app
             logFile = new File(dirPath, subject+"log_status_" + subjectID + ".csv");
-            errorLogFile = new File(dirPath, subject+"error_logs_" + subjectID + ".csv");
         }
 
         if (isCentral && (bleSSFile == null)){
@@ -571,24 +723,76 @@ public class Scheduler {
 
         //Write status info to file
         FileOutputStream stream = new FileOutputStream(logFile,true);
-        FileOutputStream errorLogStream = new FileOutputStream(errorLogFile, true);
 
         try {
             stream.write(outputString.toString().getBytes());
-            errorLogStream.write(errorLogs.getBytes());
         } finally {
             stream.close();
-            errorLogStream.close();
         }
-
     }
 
 
     /**
-     * Executes at the start of each hour
+     * Logs hourly information about time until study starts
+     * @throws IOException
+     */
+    public static void logBeforeStudyStart() throws IOException {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        isBeforeStudyLogFileCreated = sharedPref.getBoolean("isBeforeStudyLogFileCreated", false);
+
+        if (!isBeforeStudyLogFileCreated) {
+
+            //Create main folder with subject's id
+            File mainFolder = new File(dirPath + subject);
+            mainFolder.mkdirs();
+
+            //Create files for logging status of app
+            beforeStudylogFile = new File(dirPath, subject + "before_study_log_" + subjectID + ".csv");
+            isBeforeStudyLogFileCreated = true;
+
+            //Record that the files have been created and put in storage
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putBoolean("isBeforeStudyLogFileCreated", true);
+            editor.apply();
+
+            //Log Subject id and header
+            FileOutputStream stream = new FileOutputStream(beforeStudylogFile);
+
+            String header = "Date, Battery %, Days, Hours, Minutes, Seconds, No of Exceptions"; //describes the time until the study starts
+            String log = "Subject ID: " + subjectID + "\n" + header + "\n";
+
+            try {
+                stream.write(log.getBytes());
+            } finally {
+                stream.close();
+            }
+        }
+
+        //Check if the Files references are null. If they are, then it means the app was restarted
+        //In which case, we need need to create an object reference to the file before writing to it
+        if (beforeStudylogFile == null){
+            //Create file reference for logging
+            beforeStudylogFile = new File(dirPath, subject + "before_study_log_" + subjectID + ".csv");
+        }
+
+        //Get data to log
+        String outputString = createBeforeStudyLogString();
+
+        //Write status info to file
+        FileOutputStream stream = new FileOutputStream(beforeStudylogFile,true);
+
+        try {
+            stream.write(outputString.toString().getBytes());
+        } finally {
+            stream.close();
+        }
+    }
+
+    /**
+     *Executes at the start of each hour
      * Decides whether to collect data in this hour, start BLE, restart BLE, or stop BLE
      */
-    public static void runEachHourly() throws FileNotFoundException {
+    public static void runEachHourly() throws IOException {
         long delayDuration;
 
         //Reset values associated with recording each hour
@@ -597,10 +801,27 @@ public class Scheduler {
         isSelfReportCompleted = false;
         hasSelfReportBeenStarted = false;
 
+        //Reset general values
+        noOfExceptionsInHour = 0;
+
         //Check which hour it is
         DataCollectionHour hour = checkHour();
 
+        //Test
+        //hour = COLLECT_DATA;
+        Log.d("Scheduler", "Current hour is " + hour);
+
+        //Log status only after study has started
+        if (hour != BEFORE_START){
+            logStatus();
+        }
+
+        logErrors();
+
         switch (hour){
+            case BEFORE_START:
+                logBeforeStudyStart();
+                break;
 
             case START:
                 startTimerfor55mins();
@@ -629,11 +850,20 @@ public class Scheduler {
                 break;
 
             case END_OF_7_DAYS:
-                //End timer
+                //TODO: Cancel timers
+
+                //Stop ble
                 if (ble != null) {
                     ble.stopBleCallback();
                 }
-                //TODO: cancel timer
+
+                //Stop service
+                Intent mService = new Intent(context, FGService.class);
+                context.stopService(mService);
+
+                //Kill app
+                //android.os.Process.killProcess(android.os.Process.myPid());
+                //System.exit(1);
 
             default:
                 break;
@@ -735,10 +965,21 @@ public class Scheduler {
         boolean isWeekDay = true;
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
 
+        //Check if it's before study starts
+        if (rightNow.get(Calendar.YEAR) <= nextMondayDate.get(Calendar.YEAR) && //current year is before of same as year of study
+                (rightNow.get(Calendar.DAY_OF_YEAR) < nextMondayDate.get(Calendar.DAY_OF_YEAR)) ||  //day is before day of study
+                (rightNow.get(Calendar.DAY_OF_YEAR) == nextMondayDate.get(Calendar.DAY_OF_YEAR) &&  //same day of study
+                        (rightNow.get(Calendar.HOUR_OF_DAY) < nextMondayDate.get(Calendar.HOUR_OF_DAY)))){  //and hour before study start hour
+            hour = BEFORE_START;
+            return hour;
+        }
+
         //Check if end of 7 days
-        if (endOf7daysDate.get(Calendar.DAY_OF_YEAR) == rightNow.get(Calendar.DAY_OF_YEAR) &&
-                endOf7daysDate.get(Calendar.HOUR_OF_DAY) == rightNow.get(Calendar.HOUR_OF_DAY) ){
-            return END_OF_7_DAYS;
+        if (endOf7daysDate.get(Calendar.DAY_OF_YEAR) == rightNow.get(Calendar.DAY_OF_YEAR) && //end of study is same as current day
+                endOf7daysDate.get(Calendar.HOUR_OF_DAY) == rightNow.get(Calendar.HOUR_OF_DAY) ){ //hour of study end date is same as current hour
+
+            hour = END_OF_7_DAYS;
+            return hour;
         }
 
         //Check if today is a weekday
@@ -777,11 +1018,12 @@ public class Scheduler {
             }
         }
 
-        Log.d("Scheduler", "Current hour is " + hour);
+        //Log.d("Scheduler", "Current hour is " + hour);
 
-        //return hour;
+        return hour;
+
         //test
-        return START;
+        //return START;
     }
 
 

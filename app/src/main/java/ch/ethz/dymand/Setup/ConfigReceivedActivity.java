@@ -25,11 +25,11 @@ public class ConfigReceivedActivity extends WearableActivity {
         setAmbientEnabled();
     }
 
-    @Override
-    public void onBackPressed() {
-        Log.i(LOG_TAG, "on Back pressed");
-        // do not go to previous activity.
-    }
+//    @Override
+//    public void onBackPressed() {
+//        Log.i(LOG_TAG, "on Back pressed");
+//        // do not go to previous activity.
+//    }
 
     public void onNextButtonPressed(View view){
         Intent intent = new Intent(this, GetVoiceSampleActivity.class);
