@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class Config {
-    private static String LOG_TAG = "CONFIG: ";
+    private static String LOG_TAG = "Logs: CONFIG: ";
     public static boolean DEBUG_MODE = false;
     public static final int NOTIFICATION_ID = 71193; //ID for foreground service - can be any number except zero
     public static final String CHANNEL_ID = "DynamdNotificationServiceChannel";
@@ -272,6 +272,7 @@ public class Config {
         int minUntilNextHour = 60 - currentMinute;
 
         if ( !(minUntilNextHour <= 10)){
+            Log.i(LOG_TAG, "setting shouldConnect as true");
             shouldConnect = true;
         }
     }
@@ -281,6 +282,7 @@ public class Config {
     }
 
     public static void resetShouldConnect(){
+        Log.i(LOG_TAG, "setting shouldConnect as false");
         shouldConnect = false;
     }
 
