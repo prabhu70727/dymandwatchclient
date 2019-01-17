@@ -235,7 +235,7 @@ public class Scheduler {
             SharedPreferences.Editor editor = sharedPref.edit();
             int dayOfNextMonday = nextMondayDate.get(Calendar.DAY_OF_YEAR);
             editor.putInt("dayOfNextMonday", dayOfNextMonday);
-
+            editor.apply();
 
         }else{
             //Get info about next Monday date from storage
