@@ -2,6 +2,7 @@ package ch.ethz.dymand.BluetoothCouple;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.os.Handler;
 import android.os.Looper;
 import android.os.Vibrator;
 import android.util.Log;
@@ -10,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import OldCode.LocalTimer;
+import ch.ethz.dymand.Bluetooth.BluetoothCentral;
 import ch.ethz.dymand.Callbacks.MessageCallback;
 import ch.ethz.dymand.Callbacks.BleCallback;
 import ch.ethz.dymand.Config;
@@ -43,13 +45,14 @@ public class BluetoothController implements
     BluetoothCentralConnect mBluetoothCentralConnect;
     BluetoothDevice mDevice;
 
-
+    private static boolean intitialScan;
     private Context mContext;
     private VAD voiceDetector;
     private static DataCollection dataCollector;
     private static MessageCallback msg;
     private static Vibrator v;
     private static final String LOG_TAG = "Logs: Bluetooth Controller";
+    private BluetoothCentral mbluetoothCentral = null;
 
     public synchronized static BluetoothController getInstance(Context context) {
         if (bluetoothController != null) return bluetoothController;
@@ -57,9 +60,25 @@ public class BluetoothController implements
             dataCollector = DataCollection.getInstance(context);
             bluetoothController = new BluetoothController();
             bluetoothController.mContext = context;
+            if(Config.scanAtFirstAllDevices) {
+                bluetoothController.allDeviceScan();
+            }
             v = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
             return bluetoothController;
         }
+    }
+
+    private void allDeviceScan() {
+        mbluetoothCentral = null;
+        mbluetoothCentral = new BluetoothCentral(mContext);
+        mbluetoothCentral.scan();
+
+        Handler mHandler = new Handler();
+        mHandler.postDelayed(new Runnable(){
+            public void run() {
+                mbluetoothCentral.stop();
+            }
+        },2000);
     }
 
     public void subscribeMessageCallback(MessageCallback msgInput) {

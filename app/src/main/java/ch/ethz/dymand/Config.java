@@ -72,7 +72,7 @@ public class Config {
 
     public static boolean isCentral = false;
     public static final int SYNC_BUFFER = 5 * (MINUTE/60); //To sync between central and peripheral
-    public static final int threshold = -100;
+    public static final int threshold = -75;
     private static final int PP_INTERVAL_SENSOR = 65547;
     private static final int NEW_ACTIVITY_SENSOR = 65549;
     private static final int HR_PPG_GAIN_SENSOR = 65544;
@@ -119,10 +119,11 @@ public class Config {
     public static int endHourWeekend = 23;
     public static boolean isSelfReportCompleted = false;
     public static boolean hasSelfReportBeenStarted = false;
-    public static boolean configReceived = true;
+    public static boolean configReceived = false;
 
     //Bluetooth couple
     public static boolean shouldConnect = false;
+    public static boolean scanAtFirstAllDevices = true;
 
     //For testing
     public static boolean SHOULD_SKIP_SET_UP = false;

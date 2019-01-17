@@ -125,8 +125,8 @@ public class VAD implements MicRecorder.MicrophoneListener {
         Log.d("Silence:", ""+isSilence);
 
         //tesing.. TODO: remove
-        return false;
-        //return isSilence;
+        // return false;
+        return isSilence;
     }
 
 
