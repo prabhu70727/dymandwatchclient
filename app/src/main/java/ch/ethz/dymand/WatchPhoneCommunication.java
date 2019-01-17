@@ -32,11 +32,13 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
 
     //------Receiving signals-START----------
 
-    // self report has started signal (key not required as message content not relevant)
+    // self report has started signal (the message is timeStamp from the other end)
     private static final String SELF_REPORT_STARTED_PATH = "/hasStartedSelfReport";
+    private static final String SELF_REPORT_STARTED_KEY = "ch.ethz.dymand.hasStartedSelfReport";
 
-    // self report has-completed signal (key not required as message content not relevant)
+    // self report has-completed signal (the message is timeStamp from the other end)
     private static final String SELF_REPORT_COMPLETED_PATH = "/hasCompletedSelfReport";
+    private static final String SELF_REPORT_COMPLETED_KEY = "ch.ethz.dymand.hasCompletedSelfReport";
 
     // get config signal
     private static final String GET_CONFIG_PATH = "/getconfig";
@@ -88,7 +90,7 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
 
     private void sendIntention(String path, String key, final String message) {
         PutDataMapRequest putDataMapReq = PutDataMapRequest.create(path);
-        final String toSend = message + (System.currentTimeMillis()%100000);
+        final String toSend = message + "_" +System.currentTimeMillis();
         putDataMapReq.getDataMap().putString(key, toSend);
         PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
         putDataReq.setUrgent();
@@ -125,15 +127,17 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
                 if (item.getUri().getPath().compareTo(SELF_REPORT_STARTED_PATH) == 0) {
                     DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
                     Log.i(LOG_TAG, "Self report started signal received:" + item.getUri());
+                    String message = dataMap.getString(SELF_REPORT_STARTED_KEY);
                     Wearable.getDataClient(context).deleteDataItems(item.getUri());
-                    setHasStartedSelfReport();
+                    if(messageOnTime(message)) setHasStartedSelfReport();
                 }
 
                 if (item.getUri().getPath().compareTo(SELF_REPORT_COMPLETED_PATH) == 0) {
                     DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
                     Log.i(LOG_TAG, "Self report completed signal received:" + item.getUri());
+                    String message = dataMap.getString(SELF_REPORT_COMPLETED_KEY);
                     Wearable.getDataClient(context).deleteDataItems(item.getUri());
-                    setHasCompletedSelfReport();
+                    if(messageOnTime(message)) setHasCompletedSelfReport();
                 }
 
 
@@ -142,6 +146,12 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
                 // DataItem deleted
             }
         }
+    }
+
+    private boolean messageOnTime(String message) {
+        long timeStamp = Long.parseLong(message.substring(message.indexOf('_')+1));
+        Log.d(LOG_TAG, "Received time stamp to check is " + timeStamp);
+        return (System.currentTimeMillis() - timeStamp) <= 10000;
     }
 
     private void setHasStartedSelfReport() {
