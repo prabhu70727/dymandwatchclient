@@ -186,7 +186,9 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
 
         //Alert user to fill self report
         Vibrator v = (Vibrator)  context.getSystemService(VIBRATOR_SERVICE);
-        v.vibrate(1000); // Vibrate for 500 milliseconds
+        v.vibrate(2000); // Vibrate for 500 milliseconds
+
+        msg.triggerMsg("Time to complete self report");
 
         if (DEBUG_MODE == true) {
             //TODO: Remove trigger message to be displayed
@@ -195,6 +197,8 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                     "Thread's name: " + Thread.currentThread().getName());
 
         }
+
+
 
         //TODO: Trigger image indicating that self report should be filled
     }

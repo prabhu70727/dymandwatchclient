@@ -166,7 +166,7 @@ public class FGService extends Service implements Callbacks.MessageCallback {
         sch.subscribeBleCallback(bleController);
 
         if (!isDemoComplete){
-            //sch.startDemoTimer();
+            sch.startDemoTimer();
         }
 
         try {
