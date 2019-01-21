@@ -170,9 +170,9 @@ public class VAD implements MicRecorder.MicrophoneListener {
         isSpeech = classification == 1 ? true : false;
 
         //Testing... TODO: remove
-        return true;
+        //return true;
 
-        //return isSpeech;
+        return isSpeech;
     }
 
     /**
