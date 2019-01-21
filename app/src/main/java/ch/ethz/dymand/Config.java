@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class Config {
-    private static String LOG_TAG = "CONFIG: ";
+    private static String LOG_TAG = "Logs: CONFIG: ";
     public static boolean DEBUG_MODE = false;
     public static final int NOTIFICATION_ID = 71193; //ID for foreground service - can be any number except zero
     public static final String CHANNEL_ID = "DynamdNotificationServiceChannel";
@@ -72,7 +72,7 @@ public class Config {
 
     public static boolean isCentral = false;
     public static final int SYNC_BUFFER = 5 * (MINUTE/60); //To sync between central and peripheral
-    public static final int threshold = -100;
+    public static final int threshold = -75;
     private static final int PP_INTERVAL_SENSOR = 65547;
     private static final int NEW_ACTIVITY_SENSOR = 65549;
     private static final int HR_PPG_GAIN_SENSOR = 65544;
@@ -119,10 +119,11 @@ public class Config {
     public static int endHourWeekend = 23;
     public static boolean isSelfReportCompleted = false;
     public static boolean hasSelfReportBeenStarted = false;
-    public static boolean configReceived = true;
+    public static boolean configReceived = false;
 
     //Bluetooth couple
     public static boolean shouldConnect = false;
+    public static boolean scanAtFirstAllDevices = true;
 
     //For testing
     public static boolean SHOULD_SKIP_SET_UP = false;
@@ -271,6 +272,7 @@ public class Config {
         int minUntilNextHour = 60 - currentMinute;
 
         if ( !(minUntilNextHour <= 10)){
+            Log.i(LOG_TAG, "setting shouldConnect as true");
             shouldConnect = true;
         }
     }
@@ -280,6 +282,7 @@ public class Config {
     }
 
     public static void resetShouldConnect(){
+        Log.i(LOG_TAG, "setting shouldConnect as false");
         shouldConnect = false;
     }
 

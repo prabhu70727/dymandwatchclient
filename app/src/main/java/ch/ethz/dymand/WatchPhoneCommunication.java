@@ -40,7 +40,7 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
     private static final String SELF_REPORT_COMPLETED_PATH = "/hasCompletedSelfReport";
     private static final String SELF_REPORT_COMPLETED_KEY = "ch.ethz.dymand.hasCompletedSelfReport";
 
-    // get config signal
+    // get config signal (shifted to GetConfigActivity.java)
     private static final String GET_CONFIG_PATH = "/getconfig";
     private static final String GET_CONFIG_KEY = "dymand.get.config.key";
 
@@ -184,7 +184,8 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
     // break and set the configuration to variables.
     private void setConfig(String configuration) {
         Log.i(LOG_TAG, "Configuration is " + configuration);
-        String [] tokens = configuration.split(" ");
+        Log.i(LOG_TAG, "Changing after Onboarding.. ignoring");
+        /*String [] tokens = configuration.split(" ");
         String [] configTokens = tokens[1].split("-");
         Config.morningStartHourWeekday = Integer.parseInt(configTokens[0]);
         Config.morningEndHourWeekday = Integer.parseInt(configTokens[1]);
@@ -192,7 +193,7 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
         Config.eveningEndHourWeekday = Integer.parseInt(configTokens[3]);
         Config.startHourWeekend = Integer.parseInt(configTokens[4]);
         Config.endHourWeekend = Integer.parseInt(configTokens[5]);
-        Config.configReceived = true;
+        Config.configReceived = true;*/
     }
 
 
