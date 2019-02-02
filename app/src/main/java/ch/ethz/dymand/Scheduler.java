@@ -171,7 +171,7 @@ public class Scheduler {
                 //TODO: proxy for demo complete. Replace with actual check
                 SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
                 SharedPreferences.Editor editor = sharedPref.edit();
-                editor.putBoolean("isDemoComplete", isDemoComplete);
+                editor.putBoolean("isDemoComplete", true);
                 editor.apply();
 
                 if (DEBUG_MODE == true) {
@@ -344,6 +344,7 @@ public class Scheduler {
 
         timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
 
+        //timerHandler.postDelayed(timerRunnable, 100000);
 //        if (hasStudyStarted){
 //            timerHandler.postDelayed(timerRunnable, millisUntilNextHour);
 //
