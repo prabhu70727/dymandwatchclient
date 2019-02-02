@@ -42,7 +42,7 @@ public class SetupCompleteActivity extends WearableActivity {
 
         //TODO: move to GetConfigActivity after Prabhu pushes his changes
         //Save hours of data collection
-        saveAppInfo(this);
+        //saveAppInfo(this);
 
         //Start service
         startService();

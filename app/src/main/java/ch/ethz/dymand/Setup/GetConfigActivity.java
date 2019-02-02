@@ -31,7 +31,7 @@ public class GetConfigActivity extends WearableActivity implements DataClient.On
     private TextView mTextView;
     private Button mButton;
     private Handler mHandler;
-    private int waitTimeInSec = 5;
+    private int waitTimeInSec = 1;
 
     // get config signal
     private static final String GET_CONFIG_PATH = "/getconfig";
