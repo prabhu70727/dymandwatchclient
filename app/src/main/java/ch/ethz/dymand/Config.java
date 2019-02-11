@@ -453,6 +453,10 @@ public class Config {
         headerBuff.append(",");
 
         headerBuff.append("discardDates");
+        headerBuff.append(",");
+        
+        headerBuff.append("noOfErrors");
+
         return headerBuff.toString();
     }
 }
