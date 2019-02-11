@@ -639,7 +639,7 @@ public class Scheduler {
         int hour = cal.get(Calendar.HOUR_OF_DAY);
         int week = cal.get(Calendar.WEEK_OF_YEAR);
 
-        String log = dirPath + subject+ "logs_" + subjectID + "_Week_" + week + "_Day_" + day + "_Hour_" + hour + ".csv";
+        String log = dirPath + subject+ "logs_" + subjectID + "_Week_" + week + "_Day_" + day + "_Hour_" + hour + ".txt";
         //Runtime.getRuntime().exec(new String[]{"logcat", "-f", log, "MyAppTAG:V", "*:S"});
         Runtime.getRuntime().exec(new String[]{"logcat", "-v", "time", "-f", log});
 
