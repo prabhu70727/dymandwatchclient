@@ -976,9 +976,11 @@ public class Scheduler {
         }
 
         //Check if end of 7 days
-        if (endOf7daysDate.get(Calendar.DAY_OF_YEAR) == rightNow.get(Calendar.DAY_OF_YEAR) && //end of study is same as current day
-                endOf7daysDate.get(Calendar.HOUR_OF_DAY) == rightNow.get(Calendar.HOUR_OF_DAY) ){ //hour of study end date is same as current hour
+//        if (endOf7daysDate.get(Calendar.DAY_OF_YEAR) == rightNow.get(Calendar.DAY_OF_YEAR) && //end of study is same as current day
+//                endOf7daysDate.get(Calendar.HOUR_OF_DAY) == rightNow.get(Calendar.HOUR_OF_DAY) ){ //hour of study end date is same as current hour
 
+        //Check if end of 7 days
+        if (rightNow.get(Calendar.DAY_OF_YEAR) >= endOf7daysDate.get(Calendar.DAY_OF_YEAR)){ //today's date is same as or after end of study date
             hour = END_OF_7_DAYS;
             return hour;
         }
