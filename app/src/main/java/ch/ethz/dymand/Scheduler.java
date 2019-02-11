@@ -496,6 +496,9 @@ public class Scheduler {
         outputString.append(sharedPref.getInt("noOfExceptions", -1));
         outputString.append(",");
 
+        outputString.append(sharedPref.getString("errorDates", "empty"));
+        outputString.append(",");
+
         outputString.append(selfReportStarted);
         outputString.append(",");
 
@@ -512,9 +515,6 @@ public class Scheduler {
         outputString.append(",");
 
         outputString.append(restartDates);
-        outputString.append(",");
-
-        outputString.append(sharedPref.getString("errorDates", "empty"));
         outputString.append("\n");
 
         //Reset previous hour's status info

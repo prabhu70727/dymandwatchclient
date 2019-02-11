@@ -480,6 +480,27 @@ public class Config {
         headerBuff.append(",");
 
         headerBuff.append("noOfErrors");
+        headerBuff.append(",");
+
+        headerBuff.append("errorDates");
+        headerBuff.append(",");
+
+        headerBuff.append("selfReportStarted");
+        headerBuff.append(",");
+
+        headerBuff.append("selfReportStartedDates");
+        headerBuff.append(",");
+
+        headerBuff.append("selfReportCompleted");
+        headerBuff.append(",");
+
+        headerBuff.append("selfReportCompletedDates");
+        headerBuff.append(",");
+
+        headerBuff.append("noOfRestarts");
+        headerBuff.append(",");
+
+        headerBuff.append("restartDates");
 
         return headerBuff.toString();
     }
