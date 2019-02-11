@@ -281,6 +281,23 @@ public class Config {
         }
     }
 
+    /**
+     * Checks if devices connecting should be allowed at that time
+     * @return
+     */
+    public static boolean allowedToConnect(){
+
+        Calendar rightNow = Calendar.getInstance(); //get calendar instance
+        int currentMinute = rightNow.get(Calendar.MINUTE);
+
+        //Check to make sure it's before x:44
+        if (currentMinute < 44){
+            return true;
+        }
+
+        return false;
+    }
+
     public static boolean shouldConnectStatus(){
         return shouldConnect;
     }

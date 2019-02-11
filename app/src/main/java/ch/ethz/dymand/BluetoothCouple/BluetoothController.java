@@ -20,6 +20,7 @@ import ch.ethz.dymand.VoiceActivityDetection.VAD;
 
 import static android.content.Context.VIBRATOR_SERVICE;
 import static ch.ethz.dymand.Config.DEBUG_MODE;
+import static ch.ethz.dymand.Config.allowedToConnect;
 import static ch.ethz.dymand.Config.closeEnoughDates;
 import static ch.ethz.dymand.Config.collectDataDates;
 import static ch.ethz.dymand.Config.collectDataNum;
@@ -222,17 +223,21 @@ public class BluetoothController implements
 
     @Override
     public void speech() {
-        if ((mDevice == null)) throw new AssertionError();
-        if (DEBUG_MODE == true) {
-            v.vibrate(500); // Vibrate for 500 milliseconds
-            msg.triggerMsg("Voice detected");
+        //Check if allowed to connect at that minute
+        if (allowedToConnect()) {
 
+            if ((mDevice == null)) throw new AssertionError();
+            if (DEBUG_MODE == true) {
+                v.vibrate(500); // Vibrate for 500 milliseconds
+                msg.triggerMsg("Voice detected");
+
+            }
+
+            Log.i(LOG_TAG, "Voice detected trying to connect (also sending a timestamp message)");
+            mBluetoothCentralConnect = new BluetoothCentralConnect(mContext, this);
+            mBluetoothCentralConnect.connectDevice(mDevice, System.currentTimeMillis() + "");
+            //mDevice = null;
         }
-
-        Log.i(LOG_TAG, "Voice detected trying to connect (also sending a timestamp message)");
-        mBluetoothCentralConnect = new BluetoothCentralConnect(mContext, this);
-        mBluetoothCentralConnect.connectDevice(mDevice, System.currentTimeMillis() + "");
-        //mDevice = null;
     }
 
     //It is better when we can restart the scanning process.
