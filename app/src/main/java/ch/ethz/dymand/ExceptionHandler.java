@@ -4,6 +4,8 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -16,9 +18,11 @@ import java.io.StringWriter;
 
 import ch.ethz.dymand.Setup.MainActivity;
 
+import static ch.ethz.dymand.Config.errorDates;
 import static ch.ethz.dymand.Config.errorLogFile;
 import static ch.ethz.dymand.Config.errorLogs;
 import static ch.ethz.dymand.Config.getDateNow;
+import static ch.ethz.dymand.Config.hasLogFileBeenCreated;
 import static ch.ethz.dymand.Config.noOfExceptionsInHour;
 
 public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
@@ -37,6 +41,14 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
         Toast.makeText(contxt, "Service Detroyed!", Toast.LENGTH_SHORT).show();
 
         noOfExceptionsInHour++; //increment number of exceptions
+        errorDates += getDateNow();
+
+        //Save the no of exceptoons
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(contxt);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putInt("noOfExceptions", noOfExceptionsInHour);
+        editor.putString("errorDates", errorDates);
+        editor.apply();
 
         Intent intent = new Intent(contxt,MainActivity.class);
 

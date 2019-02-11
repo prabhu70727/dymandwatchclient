@@ -36,6 +36,7 @@ import static ch.ethz.dymand.Config.dataCollectEndDate;
 import static ch.ethz.dymand.Config.dataCollectStartDate;
 import static ch.ethz.dymand.Config.discardDates;
 import static ch.ethz.dymand.Config.endHourWeekend;
+import static ch.ethz.dymand.Config.errorDates;
 import static ch.ethz.dymand.Config.errorLogFile;
 import static ch.ethz.dymand.Config.errorLogs;
 import static ch.ethz.dymand.Config.eveningEndHourWeekday;
@@ -379,6 +380,8 @@ public class Scheduler {
      *
      */
     private static String createLogStatusString(){
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+
         //Create string to log
         StringBuilder outputString = new StringBuilder();
 
@@ -490,7 +493,7 @@ public class Scheduler {
         outputString.append(discardDates);
         outputString.append(",");
 
-        outputString.append(noOfExceptionsInHour);
+        outputString.append(sharedPref.getInt("noOfExceptions", -1));
         outputString.append(",");
 
         outputString.append(selfReportStarted);
@@ -509,6 +512,9 @@ public class Scheduler {
         outputString.append(",");
 
         outputString.append(restartDates);
+        outputString.append(",");
+
+        outputString.append(sharedPref.getString("errorDates", "empty"));
         outputString.append("\n");
 
         //Reset previous hour's status info
