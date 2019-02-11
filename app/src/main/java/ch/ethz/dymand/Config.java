@@ -180,6 +180,10 @@ public class Config {
     public static int collectDataNum = 0;
     public static String collectDataDates = "";
     public static String discardDates = "";
+    public static boolean selfReportStarted = false;
+    public static String selfReportStartedDates = "";
+    public static boolean selfReportCompleted = false;
+    public static String selfReportCompletedDates = "";
 
     static SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
     static SimpleDateFormat df2 = new SimpleDateFormat("MM-dd-yyyy HH_mm_ss");
@@ -454,7 +458,7 @@ public class Config {
 
         headerBuff.append("discardDates");
         headerBuff.append(",");
-        
+
         headerBuff.append("noOfErrors");
 
         return headerBuff.toString();

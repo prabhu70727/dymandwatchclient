@@ -22,6 +22,11 @@ import OldCode.WatchMobileInterface;
 import static android.content.Context.VIBRATOR_SERVICE;
 import static ch.ethz.dymand.Callbacks.MessageCallback;
 import static ch.ethz.dymand.Config.DEBUG_MODE;
+import static ch.ethz.dymand.Config.getDateNow;
+import static ch.ethz.dymand.Config.selfReportCompleted;
+import static ch.ethz.dymand.Config.selfReportCompletedDates;
+import static ch.ethz.dymand.Config.selfReportStarted;
+import static ch.ethz.dymand.Config.selfReportStartedDates;
 
 // Initialize and get instance: mWatchPhoneCommunication = WatchPhoneCommunication.getInstance(this);
 // Callbacks.WatchPhoneCommCallback.signalPhone is the callback
@@ -157,7 +162,8 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
     private void setHasStartedSelfReport() {
         Log.i(LOG_TAG, "Setting variable hasStartedSelfReport...");
         Config.hasSelfReportBeenStarted = true;
-
+        selfReportStarted = true;
+        selfReportStartedDates += getDateNow();
 
         if (DEBUG_MODE == true){
             msg.triggerMsg("Self Report Started");
@@ -171,7 +177,8 @@ public class WatchPhoneCommunication implements DataClient.OnDataChangedListener
         Log.i(LOG_TAG, "Setting variable hasCompletedSelfReport...");
         sendIntention(SELF_REPORT_COMPLETED_ACK_PATH, SELF_REPORT_COMPLETED_ACK_KEY, SELF_REPORT_COMPLETED_ACK_MESSAGE);
         Config.isSelfReportCompleted = true;
-
+        selfReportCompleted = true;
+        selfReportCompletedDates += getDateNow();
 
         if (DEBUG_MODE == true){
             msg.triggerMsg("Self Report Completed");

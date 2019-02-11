@@ -64,6 +64,10 @@ import static ch.ethz.dymand.Config.recordingTriggeredNum;
 import static ch.ethz.dymand.Config.resetShouldConnect;
 import static ch.ethz.dymand.Config.scanStartDates;
 import static ch.ethz.dymand.Config.scanWasStarted;
+import static ch.ethz.dymand.Config.selfReportCompleted;
+import static ch.ethz.dymand.Config.selfReportCompletedDates;
+import static ch.ethz.dymand.Config.selfReportStarted;
+import static ch.ethz.dymand.Config.selfReportStartedDates;
 import static ch.ethz.dymand.Config.setShouldConnect;
 import static ch.ethz.dymand.Config.startAdvertTriggerDates;
 import static ch.ethz.dymand.Config.startAdvertTriggerNum;
@@ -481,6 +485,19 @@ public class Scheduler {
         outputString.append(",");
 
         outputString.append(noOfExceptionsInHour);
+        outputString.append(",");
+
+        outputString.append(selfReportStarted);
+        outputString.append(",");
+
+        outputString.append(selfReportStartedDates);
+        outputString.append(",");
+
+        outputString.append(selfReportCompleted);
+        outputString.append(",");
+
+        outputString.append(selfReportCompletedDates);
+
         outputString.append("\n");
 
         //Reset previous hour's status info
@@ -526,6 +543,10 @@ public class Scheduler {
         collectDataDates = "";
         discardDates = "";
         errorLogs = "";
+        selfReportStarted = false;
+        selfReportStartedDates = "";
+        selfReportCompleted = false;
+        selfReportCompletedDates = "";
     }
 
     /**
