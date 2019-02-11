@@ -184,6 +184,8 @@ public class Config {
     public static String selfReportStartedDates = "";
     public static boolean selfReportCompleted = false;
     public static String selfReportCompletedDates = "";
+    public static int noOfRestarts = 0;
+    public static String restartDates = "";
 
     static SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
     static SimpleDateFormat df2 = new SimpleDateFormat("MM-dd-yyyy HH_mm_ss");

@@ -40,6 +40,7 @@ import static ch.ethz.dymand.Config.errorLogFile;
 import static ch.ethz.dymand.Config.errorLogs;
 import static ch.ethz.dymand.Config.eveningEndHourWeekday;
 import static ch.ethz.dymand.Config.eveningStartHourWeekday;
+import static ch.ethz.dymand.Config.getDateNow;
 import static ch.ethz.dymand.Config.hasLogFileBeenCreated;
 import static ch.ethz.dymand.Config.hasSelfReportBeenStarted;
 import static ch.ethz.dymand.Config.hasStartedRecording;
@@ -56,12 +57,14 @@ import static ch.ethz.dymand.Config.morningEndHourWeekday;
 import static ch.ethz.dymand.Config.morningStartHourWeekday;
 import static ch.ethz.dymand.Config.nextMondayDate;
 import static ch.ethz.dymand.Config.noOfExceptionsInHour;
+import static ch.ethz.dymand.Config.noOfRestarts;
 import static ch.ethz.dymand.Config.noSilenceDates;
 import static ch.ethz.dymand.Config.noSilenceNum;
 import static ch.ethz.dymand.Config.recordedInHour;
 import static ch.ethz.dymand.Config.recordingTriggeredDates;
 import static ch.ethz.dymand.Config.recordingTriggeredNum;
 import static ch.ethz.dymand.Config.resetShouldConnect;
+import static ch.ethz.dymand.Config.restartDates;
 import static ch.ethz.dymand.Config.scanStartDates;
 import static ch.ethz.dymand.Config.scanWasStarted;
 import static ch.ethz.dymand.Config.selfReportCompleted;
@@ -208,6 +211,9 @@ public class Scheduler {
      * Set to start the next Monday at the morning start time
      */
     public void startHourlyTimer() throws IOException {
+        noOfRestarts++; //increment count for app restart
+        restartDates += getDateNow();
+
         long millisUntilNextHour = 0;
         long millisUntilNextMondayStart = 0;
 
@@ -497,7 +503,12 @@ public class Scheduler {
         outputString.append(",");
 
         outputString.append(selfReportCompletedDates);
+        outputString.append(",");
 
+        outputString.append(noOfRestarts);
+        outputString.append(",");
+
+        outputString.append(restartDates);
         outputString.append("\n");
 
         //Reset previous hour's status info
@@ -547,6 +558,7 @@ public class Scheduler {
         selfReportStartedDates = "";
         selfReportCompleted = false;
         selfReportCompletedDates = "";
+        noOfRestarts = 0;
     }
 
     /**
