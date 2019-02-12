@@ -65,7 +65,13 @@ public class BackgroundAudioRecorder {
         if (null != audioRecorder) {
             Log.i(LOG_TAG, "Stopped audio recording");
             isRecording = false;
-            audioRecorder.stop();
+
+            try{
+                audioRecorder.stop();
+            }catch (Exception e){
+                Log.i(LOG_TAG, "Error when calling stop " + e.toString());
+            }
+
             audioRecorder.release();
             audioRecorder = null;
         }
