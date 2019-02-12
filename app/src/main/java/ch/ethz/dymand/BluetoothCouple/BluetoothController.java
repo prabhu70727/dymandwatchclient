@@ -262,7 +262,7 @@ public class BluetoothController implements
         if ((!(shouldConnectStatus() == true))) {
             Log.e("Logs", "BStart BLE failed");
             errorLogs =  errorLogs + LOG_TAG + ": Start BLE failed "   + " \n";
-            throw new AssertionError();
+            //throw new AssertionError();
         }
 
         if (Config.isCentral) {

@@ -326,12 +326,43 @@ public class Scheduler {
 
                 }
 
-                try {
-                    runEachHourly();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
+//                try {
+//                    runEachHourly();
+//                } catch (FileNotFoundException e) {
+//                    e.printStackTrace();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+
+                //Get current date
+                final Calendar rightNow = Calendar.getInstance(); //get calendar instance
+                int currentMinute = rightNow.get(Calendar.MINUTE);
+                int currentSecond = rightNow.get(Calendar.SECOND);
+                int minsDiff = 60-currentMinute;
+                int secsDiff = 60-currentSecond;
+
+                //If it's a few seconds to the next hour, wait for a few seconds
+                if (minsDiff>0){
+                    Log.i("Scheduler","Hourly check called at " + rightNow.toString());
+                    final long diffMillis = ((minsDiff-1)*60 + secsDiff) * 1000;
+                    Handler mHandler = new Handler();
+                    mHandler.postDelayed(new Runnable(){
+                        public void run() {
+                            Log.i("Scheduler","Next hour starting after wait of " + diffMillis);
+
+                            try {
+                                runEachHourly();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    },diffMillis);
+                }else{
+                    try {
+                        runEachHourly();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 //TODO: remove for actual deployment
@@ -833,6 +864,7 @@ public class Scheduler {
      * Decides whether to collect data in this hour, start BLE, restart BLE, or stop BLE
      */
     public static void runEachHourly() throws IOException {
+
         long delayDuration;
 
         //Reset values associated with recording each hour
