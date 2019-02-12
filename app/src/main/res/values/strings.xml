@@ -25,7 +25,7 @@
     <string name="title_activity_get_config">GetConfigActivity</string>
     <string name="get_config_info">Make sure phone\'s Bluetooth is on</string>
     <string name="title_activity_setup_complete">SetupCompleteActivity</string>
-    <string name="setup_complete_msg">Setup Complete </string>
+    <string name="setup_complete_msg">App Running </string>
     <string name="title_activity_get_voice_sample">GetVoiceSampleActivity</string>
     <string name="voice_sample_msg">Read text and press START to record and STOP when done</string>
     <string name="start_msg">start</string>

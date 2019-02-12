@@ -124,7 +124,8 @@ public class Scheduler {
     private static BleCallback ble;
     private static DataCollectionCallback dataCollection;
     private static MessageCallback msg;
-    private static long DELAY_FOR_1_MIN =  5 * 1000; //10000; //
+    private static long DELAY_FOR_1_MIN =  5 * 60 * 1000; //10000; //
+    private static long DELAY_FOR_5_MIN =  5 * 60 * 1000; //10000; //
     private static long minTimeBtnRecordings = 20 * 60 * 1000; //minimum time between recordings is 20 mins
     private static long DELAY_FOR_55_MINS = 44 * 60 * 1000; //5000; //
     private static long DELAY_FOR_60_MINS = 60 * 60 * 1000; //10000; //
@@ -204,7 +205,7 @@ public class Scheduler {
             }
         };
 
-        timerHandler.postDelayed(timerRunnable, DELAY_FOR_1_MIN);
+        timerHandler.postDelayed(timerRunnable, DELAY_FOR_5_MIN);
     }
 
     /**

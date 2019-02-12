@@ -50,30 +50,30 @@ public class GetVoiceSampleActivity extends WearableActivity {
             public void onClick(View v) {
                 recorder = new BackgroundAudioRecorder(GetVoiceSampleActivity.this);
 
-                if (doneRecording){
-                    completeRecording();
-                }else {
+//                if (doneRecording){
+//                    //completeRecording();
+//                }else {
 
-                    if (isRecording) {
-                        //recordButton.setEnabled(false);
-                        isRecording = false;
-                        stopRecording();
-                        doneRecording = true;
-                        recordButton.setText("Done");
-                        scheduleTransition();
+                if (isRecording) {
+                    //recordButton.setEnabled(false);
+                    isRecording = false;
+                    stopRecording();
+                    //doneRecording = true;
+                    //recordButton.setText("Done");
+                    recordButton.setEnabled(false);
+                    scheduleTransition();
 
-                    } else {
+                } else {
 
-                        isRecording = true;
-                        recordButton.setText(R.string.stop_msg);
-                        try {
-                            startRecording();
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        }
-
+                    isRecording = true;
+                    recordButton.setText(R.string.stop_msg);
+                    try {
+                        startRecording();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
                     }
                 }
+
             }
         });
 
@@ -143,6 +143,6 @@ public class GetVoiceSampleActivity extends WearableActivity {
             }
         };
 
-        timerHandler.postDelayed(timerRunnable, 4000);
+        timerHandler.postDelayed(timerRunnable, 5000);
     }
 }
