@@ -17,6 +17,7 @@ import ch.ethz.dymand.Sensors.SensorRecorder;
 
 import static android.content.Context.VIBRATOR_SERVICE;
 import static ch.ethz.dymand.Config.DEBUG_MODE;
+import static ch.ethz.dymand.Config.audioFileTag;
 import static ch.ethz.dymand.Config.dataCollectStartDate;
 import static ch.ethz.dymand.Config.dataCollectEndDate;
 import static ch.ethz.dymand.Config.discardDates;
@@ -26,6 +27,7 @@ import static ch.ethz.dymand.Config.hasSelfReportBeenStarted;
 import static ch.ethz.dymand.Config.hasStartedRecording;
 import static ch.ethz.dymand.Config.isCentral;
 import static ch.ethz.dymand.Config.isSelfReportCompleted;
+import static ch.ethz.dymand.Config.last5Mins;
 import static ch.ethz.dymand.Config.lastRecordedTime;
 import static ch.ethz.dymand.Config.prevLastRecordedTime;
 import static ch.ethz.dymand.Config.recordedInHour;
@@ -61,7 +63,8 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
     private WatchPhoneCommCallback commCallback;
 
     private static Context context;
-    
+    private static String dirPath;
+
     public static DataCollection getInstance(Context contxt) {
         if (instance == null) {
             instance = new DataCollection();
@@ -99,7 +102,7 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         int day = cal.get(Calendar.DAY_OF_WEEK)-1;
         int hour = cal.get(Calendar.HOUR_OF_DAY);
 
-        String dirPath = context.getFilesDir().getAbsolutePath()+"/Subject_" + subjectID +
+        dirPath = context.getFilesDir().getAbsolutePath()+"/Subject_" + subjectID +
                 "/Day_" + day + "/Hour_" + hour + "/" + getDateNowForFilename() + "/";
 
 
@@ -270,6 +273,12 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                     //Mark recording as discarded if not completed
                     discardDates = discardDates + getDateNow();
 
+                    //Delete audio recording if not last 5 mins
+                    if (last5Mins != false){
+                        deleteAudioFile();
+                    }
+
+
                     //Reset values
                     //shouldConnect = true;
                     setShouldConnect();
@@ -309,6 +318,11 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                     //Mark recording as discarded if not completed
                     discardDates = discardDates + getDateNow();
 
+                    //Delete audio recording
+                    if (last5Mins != false){
+                        deleteAudioFile();
+                    }
+
                     //Reset values
                     setShouldConnect();
                     hasStartedRecording = false;
@@ -320,6 +334,21 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         //Starts timer
         Timer timer = new Timer("Timer");
         timer.schedule(task, delay);
+    }
+
+
+    /**
+     * Deletes recorded audio file
+     */
+    private void deleteAudioFile(){
+        File audioFile = new File(dirPath+"/" + audioFileTag + ".m4a");
+        boolean deleted = audioFile.delete();
+
+        if (deleted){
+            Log.i(LOG_TAG, "Audio file successfully deleted");
+        }else{
+            Log.i(LOG_TAG, "Audio file was not deleted");
+        }
     }
 
 
@@ -338,6 +367,10 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         prevLastRecordedTime = lastRecordedTime;
         lastRecordedTime = System.currentTimeMillis();
         recordedInHour = true;
+
+
+        //TODO: Save 5 secs of VAD audio
+
 
         if (DEBUG_MODE == true){
             msg.triggerMsg("Recording stopped");
