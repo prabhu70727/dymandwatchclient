@@ -29,6 +29,7 @@ import static ch.ethz.dymand.Config.closeEnoughDates;
 import static ch.ethz.dymand.Config.closeEnoughNum;
 import static ch.ethz.dymand.Config.collectDataDates;
 import static ch.ethz.dymand.Config.collectDataNum;
+import static ch.ethz.dymand.Config.configFile;
 import static ch.ethz.dymand.Config.connectedDates;
 import static ch.ethz.dymand.Config.connectedNum;
 import static ch.ethz.dymand.Config.createLogHeader;
@@ -219,9 +220,6 @@ public class Scheduler {
         long millisUntilNextHour = 0;
         long millisUntilNextMondayStart = 0;
 
-        //Create files with headers
-        createFilesWithHeaders();
-
         //Get current date
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
         int today = rightNow.get(Calendar.DAY_OF_WEEK);
@@ -294,6 +292,9 @@ public class Scheduler {
         Log.d("Scheduler", "Minutes till next hour: " + millisUntilNextHour/(1000*60));;
         Log.d("Scheduler", "Seconds till next hour " + millisUntilNextHour/1000);
 
+
+        //Create files with headers
+        createFilesWithHeaders();
 
         //Create timer using handler and runnable
         final Handler timerHandler = new Handler();
@@ -600,6 +601,27 @@ public class Scheduler {
     }
 
     /**
+     * Create string of configuration
+     * @return
+     */
+    private static String createConfigString(){
+        //Create string to log
+        StringBuilder configString = new StringBuilder();
+
+        configString.append("morningStartHourWeekday," + morningStartHourWeekday + "\n");
+        configString.append("morningEndHourWeekday," + morningEndHourWeekday + "\n");
+        configString.append("eveningStartHourWeekday," + eveningStartHourWeekday + "\n");
+        configString.append("eveningEndHourWeekday," + eveningEndHourWeekday + "\n");
+        configString.append("startHourWeekend," + startHourWeekend + "\n");
+        configString.append("endHourWeekend," + endHourWeekend + "\n");
+        configString.append("nextMondayDate," + nextMondayDate.getTime() + "\n");
+        configString.append("endOf7daysDate," + endOf7daysDate.getTime() + "\n");
+
+        return configString.toString();
+    }
+
+
+    /**
      * Creates string containing info about duration until study starts
      * @return logString
      */
@@ -732,6 +754,7 @@ public class Scheduler {
             logFile = new File(dirPath, subject+ "log_status_" + subjectID + ".csv");
             errorLogFile = new File(dirPath, subject+"error_logs_" + subjectID + ".csv");
             bleSSFile = new File(dirPath, subject+"ble_signal_strength_log.csv");
+            configFile = new File(dirPath, subject+"config_log.csv");
 
             logStatusFileCreated = true;
 
@@ -744,7 +767,9 @@ public class Scheduler {
             //Log Subject id and header
             FileOutputStream stream = new FileOutputStream(logFile);
             FileOutputStream errorLogStream = new FileOutputStream(errorLogFile);
+            FileOutputStream configLogStream = new FileOutputStream(configFile);
             FileOutputStream bleSSFileStream = null;
+
             if (isCentral){
                 bleSSFileStream = new FileOutputStream(bleSSFile);
             }
@@ -754,10 +779,12 @@ public class Scheduler {
             String log = "Subject ID: " + subjectID + "\n" + header + "\n";
             String errorLogHeader = "Subject ID: " + subjectID + "\n";
             String bleLogHeader = "Subject ID: " + subjectID + "\n" + "Date,Signal Strength" + "\n";
+            String configLogString = createConfigString();
 
             try {
                 stream.write(log.getBytes());
                 errorLogStream.write(errorLogHeader.getBytes());
+                configLogStream.write(configLogString.getBytes());
 
                 if (isCentral){
                     bleSSFileStream.write(bleLogHeader.getBytes());

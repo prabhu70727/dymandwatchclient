@@ -146,6 +146,7 @@ public class Config {
     public static File bleSSFile = null;
     public static File logFile = null;
     public static File errorLogFile = null;
+    public static File configFile = null;
     public static boolean logStatusFileCreated = false;
     public static boolean isBeforeStudyLogFileCreated = false;
     public static File beforeStudylogFile = null;
