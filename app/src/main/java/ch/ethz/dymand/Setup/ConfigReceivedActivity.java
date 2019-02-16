@@ -9,6 +9,8 @@ import android.widget.TextView;
 
 import ch.ethz.dymand.R;
 
+import static ch.ethz.dymand.Config.saveAppInfo;
+
 public class ConfigReceivedActivity extends WearableActivity {
 
     private TextView mTextView;
@@ -23,6 +25,9 @@ public class ConfigReceivedActivity extends WearableActivity {
 
         // Enables Always-on
         setAmbientEnabled();
+
+        //Save hours of data collection
+        saveAppInfo(this);
     }
 
 //    @Override
