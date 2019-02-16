@@ -67,7 +67,7 @@ public class Config {
     public static UUID CHARACTERISTIC_UUID = UUID.fromString(CHARACTERISTIC_STRING);
 
     public static String audioFileTag = "watchRecordAudio";
-    public static final int RECORDER_SAMPLE_RATE = 96000;
+    public static final int RECORDER_SAMPLE_RATE = 44100;
     public static final int RECORDER_ENCODING_BIT_RATE = 200000;
 
     public static boolean isCentral = false;
