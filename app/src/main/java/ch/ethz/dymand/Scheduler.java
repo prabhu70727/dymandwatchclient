@@ -145,7 +145,7 @@ public class Scheduler {
             instance = new Scheduler();
 
             context = contxt;
-            dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath();
+            dirPath = context.getApplicationContext().getExternalFilesDir(null).getAbsolutePath();
 
             Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(context));
 

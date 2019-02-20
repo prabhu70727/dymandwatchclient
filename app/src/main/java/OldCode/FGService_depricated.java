@@ -158,9 +158,9 @@ public class FGService_depricated extends Service {
         if(isCentral) tag = tag+"black_";
         else tag = tag + "white_";
 
-        File recordDir = new File(this.getApplicationContext().getFilesDir().getAbsolutePath()+"/"+tag+timeStamp);
+        File recordDir = new File(this.getApplicationContext().getExternalFilesDir(null).getAbsolutePath()+"/"+tag+timeStamp);
         recordDir.mkdirs();
-        String dirPath = this.getApplicationContext().getFilesDir().getAbsolutePath()+"/"+tag+timeStamp+"/";
+        String dirPath = this.getApplicationContext().getExternalFilesDir(null).getAbsolutePath()+"/"+tag+timeStamp+"/";
 
         mAudioRecorder.startRecording(dirPath); // non blocking return.
         mSensorRecorder.startRecording(dirPath); // non blocking return.

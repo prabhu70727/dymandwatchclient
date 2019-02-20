@@ -86,7 +86,7 @@ public class BluetoothCentralScan {
             mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
 
 //            Log.i(LOG_TAG, "About to create BLE Log file" );
-//            String dirPath = mContext.getApplicationContext().getFilesDir().getAbsolutePath();
+//            String dirPath = mContext.getApplicationContext().getExternalFilesDir(null).getAbsolutePath();
 //            bleSSFile = new File(dirPath, "Bluetooth_signal_strength_log");
 //
 //            if(!bleSSFile.exists()){
