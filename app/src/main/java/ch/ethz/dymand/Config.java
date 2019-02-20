@@ -67,7 +67,7 @@ public class Config {
     public static UUID CHARACTERISTIC_UUID = UUID.fromString(CHARACTERISTIC_STRING);
 
     public static String audioFileTag = "watchRecordAudio";
-    public static final int RECORDER_SAMPLE_RATE = 44100;
+    public static final int RECORDER_SAMPLE_RATE = 96000;
     public static final int RECORDER_ENCODING_BIT_RATE = 200000;
 
     public static boolean isCentral = false;
@@ -276,10 +276,8 @@ public class Config {
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
         int currentMinute = rightNow.get(Calendar.MINUTE);
 
-        //Check to make sure it's less than 15 mins to next hour
-        int minUntilNextHour = 60 - currentMinute;
-
-        if ( !(minUntilNextHour <= 15)){
+        //Check to make sure it's before x:43
+        if (currentMinute < 43){
             Log.i(LOG_TAG, "setting shouldConnect as true");
             shouldConnect = true;
         }
