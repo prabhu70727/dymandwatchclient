@@ -94,19 +94,19 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         if(isCentral) tag = tag+"black_";
         else tag = tag + "white_";
 
-//        File recordDir = new File(context.getApplicationContext().getFilesDir().getAbsolutePath()+"/"+tag+timeStamp);
+//        File recordDir = new File(context.getApplicationContext().getExternalFilesDir(null).getAbsolutePath()+"/"+tag+timeStamp);
 //        recordDir.mkdirs();
-//        String dirPath = context.getApplicationContext().getFilesDir().getAbsolutePath()+"/"+tag+timeStamp+"/";
+//        String dirPath = context.getApplicationContext().getExternalFilesDir(null).getAbsolutePath()+"/"+tag+timeStamp+"/";
 
         Calendar cal = Calendar.getInstance();
         int day = cal.get(Calendar.DAY_OF_WEEK)-1;
         int hour = cal.get(Calendar.HOUR_OF_DAY);
 
-        dirPath = context.getFilesDir().getAbsolutePath()+"/Subject_" + subjectID +
+        dirPath = context.getExternalFilesDir(null).getAbsolutePath()+"/Subject_" + subjectID +
                 "/Day_" + day + "/Hour_" + hour + "/" + getDateNowForFilename() + "/";
 
 
-//        String dirPath = context.getFilesDir().getAbsolutePath()+"/Subject_" + subjectID + "/Day_8" + "/Hour_" + hour + "/";
+//        String dirPath = context.getExternlFilesDir().getAbsolutePath()+"/Subject_" + subjectID + "/Day_8" + "/Hour_" + hour + "/";
 
         File dir = new File(dirPath);
 

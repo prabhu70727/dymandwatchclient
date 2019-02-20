@@ -86,21 +86,21 @@ public class GetVoiceSampleActivity extends WearableActivity {
     public void startRecording() throws FileNotFoundException {
         Log.d(TAG, "starting recording");
         long timeStamp = System.currentTimeMillis();
-//        File recordDir = new File(getApplicationContext().getFilesDir().getAbsolutePath()+"/"+TAG+timeStamp);
+//        File recordDir = new File(getApplicationContext().getExternalFilesDir(null).getAbsolutePath()+"/"+TAG+timeStamp);
 //        recordDir.mkdirs();
-//        String dirPath = getApplicationContext().getFilesDir().getAbsolutePath()+"/"+TAG+timeStamp+"/";
+//        String dirPath = getApplicationContext().getExternalFilesDir(null).getAbsolutePath()+"/"+TAG+timeStamp+"/";
 
         Calendar cal = Calendar.getInstance();
         int day = cal.get(Calendar.DAY_OF_WEEK)-1;
         int hour = cal.get(Calendar.HOUR_OF_DAY);
 
-        String dirPath = getApplicationContext().getFilesDir().getAbsolutePath()+"/Subject_" + subjectID +
+        String dirPath = getApplicationContext().getExternalFilesDir(null).getAbsolutePath()+"/Subject_" + subjectID +
                 "/Voice_Sample/" +"/Day_" + day + "/Hour_" + hour + "/" + getDateNowForFilename() + "/";
 
 
-        //        String dirPath = getApplicationContext().getFilesDir().getAbsolutePath()+"/Subject_" + subjectID +
+        //        String dirPath = getApplicationContext().getExternalFilesDir(null).getAbsolutePath()+"/Subject_" + subjectID +
         //                "/Day_" + day + "/Hour_" + hour + "/" + getDateNowForFilename() + "/";
-        //        String dirPath = getApplicationContext().getFilesDir().getAbsolutePath()+"/Subject_" + subjectID + "/Day_8" + "/Hour_" + hour + "/";
+        //        String dirPath = getApplicationContext().getExternalFilesDir(null).getAbsolutePath()+"/Subject_" + subjectID + "/Day_8" + "/Hour_" + hour + "/";
 
         File dir = new File(dirPath);
 
