@@ -343,10 +343,15 @@ public class Scheduler {
                 int minsDiff = 60-currentMinute;
                 int secsDiff = 60-currentSecond;
 
+                Log.i("Scheduler","Hourly check - time now " + rightNow.getTime().toString());
+                Log.i("Scheduler","Hourly check - called at minute: " + currentMinute + " and second: " + currentSecond);
+
                 //If it's a few seconds to the next hour, wait for a few seconds
-                if (minsDiff>0){
-                    Log.i("Scheduler","Hourly check called at " + rightNow.getTime().toString());
+                if (minsDiff != 60){
+
                     final long diffMillis = ((minsDiff-1)*60 + secsDiff) * 1000;
+                    Log.i("Scheduler","Scheduling next hour starting in " + diffMillis + "millis");
+
                     Handler mHandler = new Handler();
                     mHandler.postDelayed(new Runnable(){
                         public void run() {
