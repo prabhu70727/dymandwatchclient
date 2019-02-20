@@ -276,10 +276,8 @@ public class Config {
         Calendar rightNow = Calendar.getInstance(); //get calendar instance
         int currentMinute = rightNow.get(Calendar.MINUTE);
 
-        //Check to make sure it's less than 15 mins to next hour
-        int minUntilNextHour = 60 - currentMinute;
-
-        if ( !(minUntilNextHour <= 15)){
+        //Check to make sure it's before x:43
+        if (currentMinute < 43){
             Log.i(LOG_TAG, "setting shouldConnect as true");
             shouldConnect = true;
         }

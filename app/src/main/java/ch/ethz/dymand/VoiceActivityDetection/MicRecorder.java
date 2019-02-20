@@ -74,11 +74,22 @@ public class MicRecorder extends Thread {
         try {
             int offset = 0;
             int bufferReadResult = 0;
-            audioRecord.startRecording();
+
+            try {
+                audioRecord.startRecording();
+            }catch (Exception e){
+                Log.i(TAG, "Error when starting recording: " + e.toString());
+            }
+
             Log.d("Thread", "Running " + isRecording);
+
             while (isRecording) {
-                bufferReadResult += audioRecord.read(buffer, offset, bufferSize - bufferReadResult);
-                offset += bufferReadResult;
+                try{
+                    bufferReadResult += audioRecord.read(buffer, offset, bufferSize - bufferReadResult);
+                }catch (Exception e){
+                    Log.i(TAG, "Error when reading audio buffer: " + e.toString());
+                }
+                                offset += bufferReadResult;
                 if (bufferReadResult == bufferSize) {
                     Log.d("Total Samples Collected", ": " + bufferReadResult);
                     for (MicRecorder.MicrophoneListener listener : listeners) {

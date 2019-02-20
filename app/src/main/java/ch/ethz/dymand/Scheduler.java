@@ -125,7 +125,7 @@ public class Scheduler {
     private static BleCallback ble;
     private static DataCollectionCallback dataCollection;
     private static MessageCallback msg;
-    private static long DELAY_FOR_1_MIN =  5 * 60 * 1000; //10000; //
+    private static long DELAY_FOR_1_MIN =  1 * 60 * 1000; //10000; //
     private static long DELAY_FOR_5_MIN =  5 * 60 * 1000; //10000; //
     private static long minTimeBtnRecordings = 20 * 60 * 1000; //minimum time between recordings is 20 mins
     private static long DELAY_FOR_55_MINS = 44 * 60 * 1000; //5000; //
@@ -206,7 +206,7 @@ public class Scheduler {
             }
         };
 
-        timerHandler.postDelayed(timerRunnable, DELAY_FOR_5_MIN);
+        timerHandler.postDelayed(timerRunnable, DELAY_FOR_1_MIN);
     }
 
     /**
@@ -345,7 +345,7 @@ public class Scheduler {
 
                 //If it's a few seconds to the next hour, wait for a few seconds
                 if (minsDiff>0){
-                    Log.i("Scheduler","Hourly check called at " + rightNow.toString());
+                    Log.i("Scheduler","Hourly check called at " + rightNow.getTime().toString());
                     final long diffMillis = ((minsDiff-1)*60 + secsDiff) * 1000;
                     Handler mHandler = new Handler();
                     mHandler.postDelayed(new Runnable(){
@@ -593,11 +593,13 @@ public class Scheduler {
         collectDataDates = "";
         discardDates = "";
         errorLogs = "";
+        errorDates = "";
         selfReportStarted = false;
         selfReportStartedDates = "";
         selfReportCompleted = false;
         selfReportCompletedDates = "";
         noOfRestarts = 0;
+        restartDates = "";
     }
 
     /**

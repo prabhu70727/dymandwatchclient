@@ -191,7 +191,7 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
         Vibrator v = (Vibrator)  context.getSystemService(VIBRATOR_SERVICE);
         v.vibrate(2000); // Vibrate for 500 milliseconds
 
-        msg.triggerMsg("Time to complete self report");
+        msg.triggerMsg("Kurzfragebogen");
 
         if (DEBUG_MODE == true) {
             //TODO: Remove trigger message to be displayed
@@ -273,8 +273,9 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                     //Mark recording as discarded if not completed
                     discardDates = discardDates + getDateNow();
 
-                    //Delete audio recording if not last 5 mins
-                    if (last5Mins != false){
+                    //Delete audio recording if not last 5 mins and not last recording in hour
+                    boolean lastRecordingInHour = isLastRecordingInHour();
+                    if (last5Mins == false && !lastRecordingInHour){
                         deleteAudioFile();
                     }
 
@@ -318,8 +319,9 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
                     //Mark recording as discarded if not completed
                     discardDates = discardDates + getDateNow();
 
-                    //Delete audio recording
-                    if (last5Mins != false){
+                    //Delete audio recording if not last 5 mins and not last recording in hour
+                    boolean lastRecordingInHour = isLastRecordingInHour();
+                    if (last5Mins == false && !lastRecordingInHour){
                         deleteAudioFile();
                     }
 
@@ -352,6 +354,17 @@ public class DataCollection implements Callbacks.DataCollectionCallback{
     }
 
 
+    private boolean isLastRecordingInHour(){
+        Calendar rightNow = Calendar.getInstance(); //get calendar instance
+        int currentMinute = rightNow.get(Calendar.MINUTE);
+
+        //Check to make sure it's before x:43
+        if (currentMinute >= 43){
+            return true;
+        }
+
+        return false;
+    }
     /**
      * Stops recording
      * @throws FileNotFoundException
